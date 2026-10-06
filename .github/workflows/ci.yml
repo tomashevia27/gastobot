@@ -18,6 +18,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      - run: npm test
       - run: npm run db:validate
       - run: npm run build
-      # No hay tests de negocio durante el bootstrap. La primera feature agrega npm test obligatorio.

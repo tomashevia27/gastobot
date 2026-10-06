@@ -24,6 +24,14 @@ Documentation:
 - Do not implement roadmap features opportunistically.
 - Do not commit, push or deploy unless the active request authorizes it.
 
+## Increment and commit workflow
+
+- Divide feature work into small, coherent increments with a specific behaviour or boundary.
+- Include implementation, directly related tests and necessary setup or documentation in the same increment. Verify documentation-only changes for consistency; do not add artificial tests.
+- Order increments so each proposed commit can stand on its own and pass its relevant checks. Keep coupled code and tests together when separating them would leave a broken intermediate state.
+- Review the staged diff and record the checks run for each increment. Do not split work mechanically by file type or directory.
+- Commit only with explicit authorization for the commit or commits. Authorization to implement or plan does not authorize a commit. Do not rewrite previous commits without an explicit request.
+
 ## Stack and boundaries
 
 Next.js App Router, React, strict TypeScript, npm, PostgreSQL, Prisma, Zod,
@@ -52,7 +60,7 @@ v0.1 is single-user local use; public/multi-user use requires authentication and
 Configured commands:
 - npm run lint
 - npm run typecheck
-- npm test (single run; currently reports no test files until the first feature)
+- npm test (single run of domain tests)
 - npm run build
 - npm run db:validate
 - npm run test:integration (with a dedicated test database, once persistence exists)

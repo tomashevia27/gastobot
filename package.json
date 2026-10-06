@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --incremental false",
     "test": "vitest run",
     "build": "next build",
     "start": "next start",
