@@ -1,16 +1,16 @@
 # Cómo empezar con GastoBot
 
-Tomás, la inicialización local ya creó la aplicación base. El estado actual y los comandos verificados están en README.md. Conservamos este archivo como guía del paquete inicial.
+Tomás, la inicialización local y la primera función de creación manual ya están implementadas. El estado actual y los comandos verificados están en README.md. Conservamos este archivo como guía del paquete inicial.
 
-## Orden recomendado
+## Secuencia original del paquete
 
 1. Descomprimí el ZIP. La carpeta gastobot es la raíz de tu futuro proyecto.
 2. Si ya creaste un repositorio vacío, copiá el CONTENIDO de gastobot a su raíz. Evitá gastobot/gastobot.
 3. Abrí esa carpeta en tu entorno de Codex antes de iniciar la tarea.
 4. Pegá el contenido de prompts/01-initialize.md.
-5. El bootstrap ya inicializó Git en `main`, configuró el proyecto y verificó la base local. Revisá el resultado y el plan de la primera feature.
-6. Revisá el resultado y ese plan. Para implementar la feature, usá prompts/03-implement-approved-plan.md, incluyendo el plan concreto.
-7. Si la sesión terminó o querés replantear la feature, usá prompts/02-plan-create-expense.md.
+5. El bootstrap inicializó Git en `main`, configuró el proyecto y verificó la base local.
+6. La primera feature implementó la creación manual siguiendo docs/features/create-expense.md.
+7. Los prompts de planificación e implementación quedan como referencia de ese proceso.
 
 Los archivos se colocan ANTES del primer prompt, para que Codex los pueda leer. Si Git ya existe, copiarlos simplemente los agrega al directorio de trabajo; después se revisan y se incluyen en un commit.
 

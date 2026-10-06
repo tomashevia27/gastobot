@@ -1,0 +1,63 @@
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+
+.header { margin-bottom: 2.5rem; }
+.eyebrow { color: #28734a; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; }
+.header h1 { max-width: 700px; font-size: clamp(2.4rem, 5vw, 4rem); line-height: 1.1; margin: 0.75rem 0; }
+.header > p:last-child { color: #51645a; font-size: 1.1rem; }
+.grid { display: grid; grid-template-columns: minmax(0, 430px) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.panel { background: #fff; border: 1px solid #d9e3da; border-radius: 20px; padding: 1.7rem; box-shadow: 0 8px 30px #193c2110; }
+.panel h2 { font-size: 1.35rem; margin: 0 0 1.5rem; }
+.field { display: flex; flex-direction: column; gap: 0.42rem; margin-bottom: 1.15rem; }
+.field label { font-weight: 650; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  border: 1px solid #b7c9bc;
+  border-radius: 9px;
+  background: #fff;
+  color: #15251b;
+  font: inherit;
+  padding: 0.7rem 0.8rem;
+}
+.field input:focus, .field select:focus, .field textarea:focus, .panel button:focus-visible {
+  outline: 3px solid #8ac7a0;
+  outline-offset: 2px;
+}
+.field [aria-invalid="true"] { border-color: #ad3838; }
+.help, .optional { color: #617268; font-size: 0.84rem; }
+.error { color: #a12d2d; font-size: 0.9rem; line-height: 1.45; }
+.success { color: #1f713d; font-weight: 700; }
+.panel button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: #176b3c;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.85rem 1rem;
+}
+.panel button:hover { background: #10552f; }
+.panel button:disabled { cursor: wait; opacity: 0.7; }
+.overview { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
+.totalCard { background: #173e2a; color: #fff; border-radius: 20px; padding: 1.7rem; }
+.totalCard p { color: #c5ddcc; margin: 0 0 0.65rem; }
+.totalCard strong { display: block; font-size: clamp(2rem, 5vw, 3rem); overflow-wrap: anywhere; }
+.listHeading { display: flex; align-items: baseline; justify-content: space-between; }
+.listHeading span { color: #51645a; }
+.empty { color: #51645a; margin: 0; }
+.list { list-style: none; margin: 0; padding: 0; }
+.item { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid #e4ebe5; padding: 1.1rem 0; }
+.item strong { display: block; }
+.item p { color: #5a6c60; font-size: 0.88rem; line-height: 1.4; margin: 0.25rem 0 0; }
+.amount { font-weight: 700; white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .page { padding: 1.5rem 1rem 3rem; }
+  .grid { grid-template-columns: 1fr; }
+  .panel, .totalCard { padding: 1.25rem; }
+}

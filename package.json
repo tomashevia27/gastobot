@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit --incremental false",
     "test": "vitest run",
     "test:integration": "node scripts/with-test-db.mjs vitest run --config vitest.integration.config.ts",
+    "test:e2e": "node scripts/with-test-db.mjs playwright test",
     "build": "next build",
     "start": "next start",
     "db:validate": "prisma validate",
@@ -30,6 +31,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@types/node": "24.19.1",
     "@types/pg": "8.15.5",
     "@types/react": "19.3.0",

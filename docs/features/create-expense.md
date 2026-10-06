@@ -1,6 +1,6 @@
 # Feature — Create a manual expense
 
-Status: Specified; not implemented.
+Status: Implemented locally; checks and setup are recorded in README.md.
 Prerequisite: initialize-project completed.
 
 ## User story

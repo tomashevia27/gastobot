@@ -3,7 +3,7 @@
 ## Context and scope
 
 GastoBot is a personal expense tracker and a learning project.
-Current state: expense domain and HTTP/PostgreSQL backend implemented; the manual web form is next.
+Current state: manual create-expense vertical slice implemented locally.
 Read the active feature specification before changing code.
 
 Documentation:
@@ -64,7 +64,7 @@ Configured commands:
 - npm run build
 - npm run db:validate
 - npm run test:integration (dedicated gastobot_test database)
-- npm run test:e2e (once Playwright and the first flow exist)
+- npm run test:e2e (Playwright against gastobot_test)
 
 Use TDD for meaningful business rules and integration tests for persistence.
 Test user behaviour; avoid tests that mirror code or verify trivial styling.

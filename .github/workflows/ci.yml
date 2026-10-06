@@ -42,3 +42,5 @@ jobs:
       - run: npm run build
         env:
           DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

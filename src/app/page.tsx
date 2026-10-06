@@ -1,13 +1,10 @@
-import styles from "./page.module.css";
+import { getExpensesSnapshot } from "@/modules/expenses/application/operations";
+import { prismaExpenseStore } from "@/modules/expenses/infrastructure/prisma-expense-store";
+import { ExpenseDashboard } from "@/modules/expenses/ui/ExpenseDashboard";
 
-export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.content}>
-        <p className={styles.eyebrow}>GastoBot · Inicio local</p>
-        <h1>Un lugar para tus gastos</h1>
-        <p>La base del proyecto está lista. El registro manual de gastos será la primera función.</p>
-      </div>
-    </main>
-  );
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const initialSnapshot = await getExpensesSnapshot(prismaExpenseStore);
+  return <ExpenseDashboard initialSnapshot={initialSnapshot} />;
 }

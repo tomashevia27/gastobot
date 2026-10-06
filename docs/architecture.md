@@ -2,7 +2,7 @@
 
 ## Status
 
-The runtime foundation is implemented. The expense module, database model and business flow begin with the first feature.
+The runtime foundation and the first manual create-expense flow are implemented. Editing and deletion are later slices.
 
 ## Initial system
 
@@ -138,8 +138,7 @@ One agent is the initial design; no orchestration framework is required before i
 PostgreSQL runs locally via Docker Compose, with a named volume and loopback-only port binding.
 Tests use a different database/URL and must never truncate the development database.
 
-The bootstrap configures lint, typecheck, build and a test runner. It must disclose that there are no business tests yet.
-The first feature adds real tests, migrations, isolated integration runs and an end-to-end path.
+The first feature adds domain tests, a migration, isolated integration runs and a browser path. The test PostgreSQL service uses a separate database and temporary storage; commands guard its URL before running.
 
 No network call, secret key or live financial account is needed to build/test the manual expense feature.
 
