@@ -1,6 +1,6 @@
 # GastoBot
 
-Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Hoy existe el bootstrap y una página de inicio; todavía no se pueden cargar gastos. La primera feature propuesta está en [create-expense](docs/features/create-expense.md).
+Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. El backend permite crear gastos manuales en ARS, listarlos y consultar el total del mes actual mediante HTTP; el formulario web queda para el siguiente incremento. El contrato está en [create-expense](docs/features/create-expense.md).
 
 ## Requisitos y versiones
 
@@ -20,12 +20,14 @@ nvm use                 # o activar Node 24.15.0 de otra manera
 npm ci
 cp .env.example .env    # solo si todavía no existe .env
 docker compose up -d --wait
+npm run db:generate
+npm run db:migrate
 npm run dev
 ```
 
 Abrí [http://localhost:3000](http://localhost:3000). `.env` queda ignorado por Git. Las credenciales del ejemplo sirven solo para desarrollo local; PostgreSQL escucha en `127.0.0.1:5432`. Para parar el contenedor sin borrar los datos: `docker compose down`. El volumen `gastobot_postgres_data` persiste. No uses `docker compose down -v` si querés conservarlo.
 
-La página de inicio no consulta PostgreSQL. Para comprobar la configuración Prisma: `npm run db:validate`. Todavía no hay modelos ni migraciones; la primera feature agregará el modelo, su migración y el cliente generado. El backend futuro usará `DATABASE_URL` del entorno, con el adaptador `@prisma/adapter-pg`.
+La migración crea `expenses` de forma aditiva, con montos `BIGINT` y una restricción de rango en PostgreSQL. El cliente de la API envía solo campos editables a `POST /api/expenses`; la respuesta exitosa es 201 y el gasto persistido. `GET /api/expenses` devuelve `{ expenses, month, currentMonthTotalCents }`. El total viaja como string de centavos para evitar problemas de serialización de `bigint`.
 
 ## Verificaciones
 
@@ -33,13 +35,28 @@ La página de inicio no consulta PostgreSQL. Para comprobar la configuración Pr
 npm run lint
 npm run typecheck
 npm run db:validate
-npm run build
+npm run db:generate
 npm test
+npm run test:integration
+npm run build
 ```
 
-`npm test` ejecuta Vitest una vez. Hoy termina con código 1 y “No test files found”: no hay reglas de negocio implementadas ni cobertura. No existen aún `test:integration` ni `test:e2e`; se incorporan con la primera feature. CI ejecutará `npm ci`, lint, typecheck, validación de Prisma y build en push/PR a `main`. Omite explícitamente la suite vacía hasta que create-expense agregue tests obligatorios. La existencia del workflow no significa que GitHub lo haya ejecutado.
+`npm test` ejecuta una sola vez los tests de dominio. Para integración, primero prepará la base aislada:
 
-En el bootstrap del 2026-10-06 se verificaron `npm install`, `npm ci`, lint, typecheck, validación de schema, build, PostgreSQL 17.11 en estado healthy, conexión Prisma con `SELECT 1` y render de `/` con HTTP 200. El contenedor se detuvo con `docker compose down` y se confirmó que el volumen persiste. El build y las comprobaciones de red/socket necesitaron ejecutarse fuera del sandbox local. La auditoría npm informó **9 alertas altas** en dependencias transitivas de las herramientas ESLint/Prisma; las sugerencias automáticas implican cambiar de línea mayor. No se ejecutó `npm audit fix --force`.
+```bash
+cp .env.test.example .env.test    # solo si todavía no existe
+docker compose --profile test up -d --wait postgres-test
+npm run db:test:migrate
+npm run test:integration
+```
+
+`postgres-test` usa el puerto `127.0.0.1:5433` y almacenamiento temporal. Los comandos de test requieren `TEST_DATABASE_URL` y verifican el nombre `gastobot_test`; cada prueba borra solo sus propios registros. El contenedor de test se puede detener con `docker compose --profile test stop postgres-test`. Nunca apuntes estos comandos a la base de desarrollo.
+
+CI ejecuta instalación, generación Prisma, lint, typecheck, tests unitarios, migración/test de integración y build en push/PR a `main`. La existencia del workflow no significa que GitHub lo haya ejecutado.
+
+En el bootstrap del 2026-10-06 se verificaron `npm install`, `npm ci`, lint, typecheck, validación de schema, build, PostgreSQL 17.11 en estado healthy, conexión Prisma con `SELECT 1` y render de `/` con HTTP 200. La auditoría npm informó **9 alertas altas** en dependencias transitivas de las herramientas ESLint/Prisma; las sugerencias automáticas implican cambiar de línea mayor. No se ejecutó `npm audit fix --force`.
+
+En el backend se comprobaron 39 tests de dominio y 5 de integración con PostgreSQL. La migración se aplicó en desarrollo y en `gastobot_test`; lint, tipos, validación Prisma y build pasaron. El workflow de GitHub aún no se ejecutó remotamente.
 
 ## Alcance y documentación
 

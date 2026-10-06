@@ -11,9 +11,13 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
     "test": "vitest run",
+    "test:integration": "node scripts/with-test-db.mjs vitest run --config vitest.integration.config.ts",
     "build": "next build",
     "start": "next start",
-    "db:validate": "prisma validate"
+    "db:validate": "prisma validate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:test:migrate": "node scripts/with-test-db.mjs prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",

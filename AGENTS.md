@@ -3,7 +3,7 @@
 ## Context and scope
 
 GastoBot is a personal expense tracker and a learning project.
-Current state: local project bootstrap complete. Next task: manual create-expense vertical slice.
+Current state: expense domain and HTTP/PostgreSQL backend implemented; the manual web form is next.
 Read the active feature specification before changing code.
 
 Documentation:
@@ -63,7 +63,7 @@ Configured commands:
 - npm test (single run of domain tests)
 - npm run build
 - npm run db:validate
-- npm run test:integration (with a dedicated test database, once persistence exists)
+- npm run test:integration (dedicated gastobot_test database)
 - npm run test:e2e (once Playwright and the first flow exist)
 
 Use TDD for meaningful business rules and integration tests for persistence.
@@ -74,4 +74,4 @@ Do not hide failed tests, disable checks to force success, or touch real user da
 Update documentation when behaviour/setup changes. Definition of done is in the methodology.
 
 Do not add microservices, Redis, vector storage, event buses, CQRS, event sourcing
-or multiple agents without a concrete requirement. No LLM/Telegram/Mercado Pago dependency is needed for bootstrap.
+or multiple agents without a concrete requirement. No LLM/Telegram/Mercado Pago dependency is needed for the manual expense flow.
