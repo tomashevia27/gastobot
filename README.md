@@ -17,15 +17,10 @@ Desde la raíz del proyecto:
 
 ```bash
 nvm use                 # o activar Node 24.15.0 de otra manera
-npm ci
-cp .env.example .env    # solo si todavía no existe .env
-docker compose up -d --wait
-npm run db:generate
-npm run db:migrate
-npm run dev
+npm run local
 ```
 
-Abrí [http://localhost:3000](http://localhost:3000). `.env` queda ignorado por Git. Las credenciales del ejemplo sirven solo para desarrollo local; PostgreSQL escucha en `127.0.0.1:5432`. Para parar el contenedor sin borrar los datos: `docker compose down`. El volumen `gastobot_postgres_data` persiste. No uses `docker compose down -v` si querés conservarlo.
+`npm run local` instala dependencias si faltan o no coinciden, crea `.env` desde el ejemplo solo si no existe, levanta PostgreSQL, genera el cliente Prisma, aplica las migraciones existentes y arranca Next.js. No reemplaza `.env` ni borra datos. Abrí [http://localhost:3000](http://localhost:3000). `.env` queda ignorado por Git. Las credenciales del ejemplo sirven solo para desarrollo local; PostgreSQL escucha en `127.0.0.1:5432`. Para detener Next.js usá `Ctrl+C`; para parar PostgreSQL sin borrar los datos: `docker compose down`. El volumen `gastobot_postgres_data` persiste. No uses `docker compose down -v` si querés conservarlo.
 
 La migración crea `expenses` de forma aditiva, con montos `BIGINT` y una restricción de rango en PostgreSQL. El formulario envía solo campos editables a `POST /api/expenses`; la respuesta exitosa es 201 y el gasto persistido. `GET /api/expenses` devuelve `{ expenses, month, currentMonthTotalCents }`. El total viaja como string de centavos para evitar problemas de serialización de `bigint`.
 
