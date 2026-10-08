@@ -1,6 +1,6 @@
 # Cómo empezar con GastoBot
 
-Tomás, la inicialización local y la primera función de creación manual ya están implementadas. El estado actual y los comandos verificados están en README.md. Conservamos este archivo como guía del paquete inicial.
+Tomás, la inicialización local, las operaciones manuales y el ingreso por Telegram ya están implementados. El estado actual y los comandos verificados están en README.md. Conservamos este archivo como guía del paquete inicial.
 
 ## Secuencia original del paquete
 
@@ -8,30 +8,30 @@ Tomás, la inicialización local y la primera función de creación manual ya es
 2. Si ya creaste un repositorio vacío, copiá el CONTENIDO de gastobot a su raíz. Evitá gastobot/gastobot.
 3. Abrí esa carpeta en tu entorno de Codex antes de iniciar la tarea.
 4. Pegá el contenido de prompts/01-initialize.md.
-5. El bootstrap inicializó Git en `main`, configuró el proyecto y verificó la base local.
-6. La primera feature implementó la creación manual siguiendo docs/features/create-expense.md.
-7. Los prompts de planificación e implementación quedan como referencia de ese proceso.
+5. La inicialización preparó Git en `main`, configuró el proyecto y verificó la base local.
+6. La primera función implementó la creación manual siguiendo docs/features/create-expense.md.
+7. Las instrucciones de planificación e implementación quedan como referencia de ese proceso.
 
-Los archivos se colocan ANTES del primer prompt, para que Codex los pueda leer. Si Git ya existe, copiarlos simplemente los agrega al directorio de trabajo; después se revisan y se incluyen en un commit.
+Los archivos se colocan ANTES de la primera instrucción, para que Codex los pueda leer. Si Git ya existe, copiarlos simplemente los agrega al directorio de trabajo; después se revisan y se incluyen en un commit.
 
-## Qué autoriza el primer prompt
+## Qué autoriza la primera instrucción
 
 - Inicialización local del proyecto y de Git cuando corresponda.
 - Configuración de dependencias, comandos, PostgreSQL local y CI.
 - Una pantalla mínima para comprobar que Next.js funciona.
-- Planificación de create-expense.
+- Planificación de la creación de gastos.
 
-La implementación de create-expense comienza en la siguiente tarea, después de revisar su plan. El primer prompt no crea un repositorio remoto, no publica ni hace push.
+La implementación de create-expense comienza en la siguiente tarea, después de revisar su plan. La primera instrucción no crea un repositorio remoto, no publica ni realiza envíos remotos.
 
 ## Decisiones de partida
 
-- Next.js App Router, React, TypeScript strict y npm.
+- Next.js App Router, React, TypeScript estricto y npm.
 - PostgreSQL, Prisma y Zod.
 - CSS Modules/CSS para la interfaz inicial.
-- Vitest para tests; Playwright cuando exista la primera interacción completa.
+- Vitest para pruebas; Playwright cuando exista la primera interacción completa.
 - Un único usuario local, ARS y America/Argentina/Buenos_Aires.
-- Primero web; después Telegram y el agente.
-- Sin IA, integración financiera ni autenticación en el bootstrap.
+- Primero la web; después Telegram y el agente.
+- Sin IA, integración financiera ni autenticación durante la inicialización.
 
 Son decisiones de este proyecto, no requisitos universales de desarrollo web. Las versiones exactas y los comandos ejecutados están registrados en README.md.
 
@@ -41,10 +41,12 @@ Son decisiones de este proyecto, no requisitos universales de desarrollo web. La
 | --- | --- |
 | AGENTS.md | Reglas cortas y operativas para Codex |
 | README.md | Presentación y estado actual |
-| docs/product.md | Problema, alcance, reglas y roadmap |
+| docs/product.md | Problema, alcance, reglas y hoja de ruta |
 | docs/architecture.md | Flujo de datos, límites y estructura objetivo |
 | docs/development-methodology.md | Metodología de trabajo |
 | docs/decisions/ | Motivos de las decisiones |
-| docs/features/initialize-project.md | Criterios verificables del bootstrap |
-| docs/features/create-expense.md | Primera vertical slice |
-| prompts/ | Pedidos listos para pegar en Codex |
+| docs/features/initialize-project.md | Criterios verificables de la inicialización |
+| docs/features/create-expense.md | Primer incremento vertical |
+| docs/features/telegram-expense-entry.md | Ingreso por Telegram |
+| docs/telegram-bot-setup.md | Creación y configuración del bot |
+| prompts/ | Instrucciones listas para pegar en Codex |

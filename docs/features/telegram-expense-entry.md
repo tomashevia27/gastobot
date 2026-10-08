@@ -1,6 +1,6 @@
-# Feature — Registrar gastos por Telegram
+# Función — Registrar gastos por Telegram
 
-Status: Implementada localmente en v0.2; falta la prueba manual con un bot real configurado por Tomás.
+Estado: implementada localmente en v0.2; falta la prueba manual con un bot real configurado por Tomás.
 
 ## Objetivo y alcance
 
@@ -31,7 +31,7 @@ El proceso local usa `getUpdates` y `sendMessage` con un token de BotFather. Sol
 
 Los mensajes se procesan en orden. Antes de confirmar el siguiente `offset`, el gasto y la identidad de la actualización se guardan en una transacción. Una clave única `(bot_id, update_id)` evita crear dos gastos ante reintentos, incluso si luego se borra el gasto. Si falla `sendMessage`, el proceso reintenta sin avanzar el offset. Una falla ambigua después de enviar puede repetir la confirmación, pero no el gasto. No se promete entrega única de respuestas.
 
-El token y el ID autorizado viven en `.env` ignorado por Git. No se registran tokens ni el texto completo de mensajes en logs. Telegram retiene las actualizaciones pendientes durante un plazo limitado; la computadora y el proceso deben estar encendidos para recibirlas oportunamente.
+El token y el ID autorizado viven en `.env`, ignorado por Git. No se registran tokens ni el texto completo de mensajes en los registros del proceso. Telegram retiene las actualizaciones pendientes durante un plazo limitado; la computadora y el proceso deben estar encendidos para recibirlas oportunamente.
 
 ## Criterios de aceptación
 
@@ -46,4 +46,4 @@ El token y el ID autorizado viven en `.env` ignorado por Git. No se registran to
 
 ## Verificación
 
-Tests unitarios del parser, opciones y fecha local. Tests de integración con `gastobot_test` para transacción, origen, reintentos y regresión web. Cliente de Telegram simulado para recepción y respuesta; prueba manual real descrita en la guía de configuración.
+Pruebas unitarias del analizador de comandos, opciones y fecha local. Pruebas de integración con `gastobot_test` para transacción, origen, reintentos y regresión web. Cliente de Telegram simulado para recepción y respuesta; la guía de configuración describe la prueba manual real.

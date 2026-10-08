@@ -1,6 +1,6 @@
 # Crear y usar el bot de Telegram
 
-Esta guía configura v0.2 para **una sola cuenta de Telegram** y una aplicación que corre en tu computadora. No necesitás una URL pública ni un túnel. El proceso debe permanecer encendido para recibir mensajes.
+Esta guía configura la v0.2 para **una sola cuenta de Telegram** y una aplicación que corre en tu computadora. No necesitás una URL pública ni un túnel. El proceso debe permanecer encendido para recibir mensajes.
 
 ## 1. Crear el bot
 
@@ -59,4 +59,4 @@ Detené el proceso con `Ctrl+C`. Para volver a recibir mensajes, ejecutá otra v
 - **La computadora estuvo apagada:** Telegram conserva actualizaciones pendientes por un máximo de 24 horas. Las más antiguas pueden perderse; revisá la lista web antes de volver a enviar un gasto.
 - **Confirmación repetida:** puede ocurrir si una respuesta se envió pero no llegó la confirmación de recepción al proceso. La misma actualización no crea un segundo gasto.
 
-La recepción por `getUpdates`, el uso de `offset`, la exclusión mutua con webhooks y el plazo de retención están descritos en la [Bot API oficial](https://core.telegram.org/bots/api#getting-updates).
+La recepción por `getUpdates`, el uso de `offset`, la exclusión mutua con webhooks y el plazo de retención están descritos en la [API oficial de bots](https://core.telegram.org/bots/api#getting-updates).
