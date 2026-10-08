@@ -1,20 +1,20 @@
-# ADR 001 — Modular monolith
+# ADR 001 — Monolito modular
 
-Status: Accepted for the initial project direction.
-Date: 2026-10-06.
+Estado: aceptada como dirección inicial del proyecto.
+Fecha: 2026-10-06.
 
-## Context
+## Contexto
 
-One developer is learning while building a small personal application. Web entry, messaging and future tools need shared business rules. Independent services would add deployment, networking and coordination work before there is a need.
+Un desarrollador aprende mientras construye una aplicación personal pequeña. El ingreso web, la mensajería y las futuras herramientas necesitan reglas de negocio compartidas. Los servicios independientes agregarían trabajo de despliegue, red y coordinación antes de que exista esa necesidad.
 
-## Decision
+## Decisión
 
-Use one Next.js application and PostgreSQL. Organize code by business feature. Keep domain rules independent of frameworks and isolate external systems at meaningful boundaries.
+Usar una aplicación Next.js y PostgreSQL. Organizar el código por función de negocio. Mantener las reglas de dominio independientes de los frameworks y aislar los sistemas externos en límites significativos.
 
-Deliver vertical slices. Introduce abstractions in response to real coupling or testing needs.
+Entregar incrementos verticales. Introducir abstracciones cuando exista un acoplamiento real o una necesidad de pruebas.
 
-## Consequences
+## Consecuencias
 
-A simple local setup and one deployable unit. Channels can reuse the same application operations.
-Modules are logical boundaries, not separately running services.
-A split requires a new decision justified by scaling, operational isolation or ownership.
+La configuración local es sencilla y hay una sola unidad desplegable. Los canales pueden reutilizar las mismas operaciones de aplicación.
+Los módulos son límites lógicos, no servicios que corren por separado.
+Una división requiere una nueva decisión justificada por escala, aislamiento operativo o propiedad.

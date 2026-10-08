@@ -1,263 +1,263 @@
-# GastoBot — Development Methodology
+# GastoBot — Metodología de desarrollo
 
-## 1. Objective
+## 1. Objetivo
 
-GastoBot will be developed incrementally as both:
+GastoBot se desarrollará por incrementos como:
 
-1. A useful personal finance application.
-2. A learning project for modern web development and AI agent engineering.
+1. Una aplicación útil para las finanzas personales.
+2. Un proyecto para aprender desarrollo web moderno e ingeniería de agentes de IA.
 
-The priority is not to generate the maximum amount of code quickly.
-The priority is to understand, verify and incrementally evolve the system.
+La prioridad no es generar la mayor cantidad de código en el menor tiempo.
+La prioridad es comprender, verificar y evolucionar el sistema gradualmente.
 
-## 2. Engineering principles
+## 2. Principios de ingeniería
 
-### 2.1 Small batches
+### 2.1 Cambios pequeños
 
-Development must happen through small, independently verifiable changes.
-Each development task should ideally be completable in a few hours rather than several days.
+El desarrollo debe avanzar mediante cambios pequeños que puedan verificarse de manera independiente.
+Idealmente, cada tarea debería poder completarse en unas horas y no en varios días.
 
-A task should have:
-- a clear goal;
-- explicit scope;
-- acceptance criteria;
-- tests or a verification strategy;
-- a small and reviewable diff.
+Cada tarea debe tener:
+- un objetivo claro;
+- alcance explícito;
+- criterios de aceptación;
+- pruebas o una estrategia de verificación;
+- un diff pequeño que se pueda revisar.
 
-Avoid large changes such as "Implement the entire Telegram integration".
+Evitá cambios grandes como «Implementar toda la integración de Telegram».
 
-Prefer:
-1. Add an HTTP endpoint capable of receiving and validating a Telegram webhook payload.
-2. Extract the text message from an accepted Telegram webhook.
-3. Convert a Telegram message into a CreateExpense command.
+Preferí, por ejemplo:
+1. Recibir y validar un tipo de actualización de Telegram en el límite de transporte elegido.
+2. Extraer el mensaje de texto de una actualización aceptada.
+3. Convertir el mensaje en un comando CreateExpense.
 
-These infrastructure increments support a complete user-facing slice; they are not a reason to build every adapter before delivering useful behaviour.
+Son incrementos de infraestructura al servicio de un recorrido completo para el usuario; no justifican construir todos los adaptadores antes de entregar un comportamiento útil.
 
-### 2.2 Vertical slices
+### 2.2 Incrementos verticales
 
-Features should preferably be developed end-to-end instead of completing entire architectural layers first.
+Preferí desarrollar las funciones de extremo a extremo antes que completar capas enteras de arquitectura por separado.
 
-Instead of:
-1. Build all database repositories.
-2. Build all services.
-3. Build all controllers.
-4. Build the whole frontend.
+En vez de:
+1. Construir todos los repositorios de base de datos.
+2. Construir todos los servicios.
+3. Construir todos los controladores.
+4. Construir toda la interfaz.
 
-Prefer:
-- Slice 1: user can create one expense, including form, HTTP boundary, validation, application logic, persistence and automated tests.
-- Slice 2: user can list expenses with richer filtering/navigation.
-- Slice 3: user can edit an expense.
-- Slice 4: user can delete an expense.
+Preferí:
+- Incremento 1: el usuario puede crear un gasto, con formulario, límite HTTP, validación, lógica de aplicación, persistencia y pruebas automatizadas.
+- Incremento 2: el usuario puede consultar gastos con mejores filtros y navegación.
+- Incremento 3: el usuario puede editar un gasto.
+- Incremento 4: el usuario puede eliminar un gasto.
 
-Each slice leaves the application in a working state.
-For GastoBot's first slice, a minimal list and current-month total are part of the creation feedback loop. Full listing/filtering and a dashboard remain separate work.
+Cada incremento deja la aplicación en funcionamiento.
+En el primero de GastoBot, una lista mínima y el total del mes actual cierran el ciclo de confirmación de la creación. La lista completa, los filtros y un panel de control son trabajos separados.
 
-## 3. Architecture philosophy
+## 3. Enfoque de arquitectura
 
-The architecture is evolutionary.
+La arquitectura evoluciona con el proyecto.
 
-Do not design infrastructure for hypothetical future requirements.
-Architectural complexity must be justified by an existing requirement or by a clearly imminent one.
-The initial architecture will be a modular monolith.
+No diseñes infraestructura para requisitos futuros hipotéticos.
+La complejidad arquitectónica debe responder a una necesidad existente o claramente inminente.
+La arquitectura inicial es un monolito modular.
 
-One Next.js application hosts presentation and application operations. Domain rules remain framework-independent; persistence is infrastructure used by application code. See docs/architecture.md for the concrete dependencies.
+Una aplicación Next.js aloja la presentación y las operaciones de aplicación. Las reglas de dominio no dependen de frameworks; la persistencia es infraestructura utilizada por la aplicación. Las dependencias concretas están en docs/architecture.md.
 
-External systems will be treated as adapters:
+Los sistemas externos se tratan como adaptadores:
 - Telegram;
 - Mercado Pago;
 - PostgreSQL;
-- LLM provider;
+- proveedor de LLM;
 - WhatsApp.
 
-The domain must not depend directly on those systems.
+El dominio no debe depender directamente de ellos.
 
-## 4. Domain-Driven Design
+## 4. Diseño guiado por el dominio
 
-DDD will be used pragmatically.
-Its purpose is to model the problem clearly, not to maximize the number of abstractions.
+Usaremos DDD de forma pragmática.
+Sirve para modelar el problema con claridad, no para maximizar la cantidad de abstracciones.
 
-The initial domain language includes:
-- Expense;
-- Amount;
-- Currency;
-- Category;
-- Merchant;
-- Payment Method;
-- Expense Source;
-- Transaction;
-- Imported Transaction;
-- Reconciliation.
+El vocabulario inicial del dominio incluye:
+- gasto;
+- monto;
+- moneda;
+- categoría;
+- comercio;
+- medio de pago;
+- origen del gasto;
+- transacción;
+- transacción importada;
+- conciliación.
 
-These terms should be used consistently in code, database, UI, documentation and tests.
-English identifiers may have consistent Spanish UI labels.
+Usá estos términos de manera coherente en código, base de datos, interfaz, documentación y pruebas.
+Los identificadores en inglés pueden tener etiquetas coherentes en español en la interfaz.
 
-Avoid generic names such as Data, Manager, Helper, Processor, Item or Utils when a precise domain concept exists.
+Evitá nombres genéricos como Data, Manager, Helper, Processor, Item o Utils cuando exista un concepto preciso del dominio.
 
-Future domain vocabulary is not a mandate to implement all those models in v0.1.
+La presencia de términos futuros en el vocabulario no obliga a implementar todos esos modelos en v0.1.
 
-## 5. Hexagonal architecture
+## 5. Arquitectura hexagonal
 
-Hexagonal architecture will be introduced at system boundaries where it provides useful isolation.
-
-~~~mermaid
-flowchart TD
-    Web["Web adapter"] --> App["Expense application"]
-    Telegram["Telegram adapter"] --> App
-    App --> Port["ExpenseStore port"]
-    PG["PostgreSQL adapter"] -. "implements" .-> Port
-~~~
-
-This illustrates a possible persistence port, not a requirement to create it before it provides value. Inbound adapters invoke application capabilities; outbound adapters implement capabilities the application needs.
-
-The application should depend on abstractions representing capabilities when they isolate a meaningful boundary.
-Infrastructure adapters implement those capabilities.
-
-Interfaces must not be created only for theoretical flexibility.
-Create a port when there is a meaningful boundary. External transaction import can introduce a TransactionSource capability when that feature exists.
-
-## 6. Testing strategy
-
-Testing will use different techniques depending on the problem.
-
-### Domain logic
-
-Prefer TDD where business rules exist:
-RED → GREEN → REFACTOR.
-
-Examples:
-- expense validation;
-- amount handling;
-- categorization rules;
-- duplicate detection;
-- reconciliation scoring.
-
-Write the failing test for the intended rule, implement the smallest valid behaviour and refactor while keeping tests green.
-
-### Infrastructure
-
-Use integration tests for:
-- database repositories/persistence operations;
-- HTTP routes;
-- external API adapters;
-- webhook parsing.
-
-Mock external services only at meaningful boundaries. Verify persistence against a real isolated test database. No automated test may clear the normal development database.
-
-### UI
-
-Test important user behaviour.
-Avoid testing trivial implementation details.
-
-Prefer "User can create an expense" over "React component has a state variable called amount".
-Do not use TDD for a trivial spacing or styling change.
-
-### Inside-out and acceptance
-
-Choose the slice from observable user behaviour, then use inside-out TDD for its important domain rules.
-Connect that logic to persistence/HTTP and the UI, and verify the complete flow.
-Inside-out implementation and vertical-slice delivery solve different problems and can be used together.
-
-## 7. AI behaviour
-
-LLM behaviour must not be treated as deterministic business logic.
-
-For example, "gasté 15 lucas en una pizza ayer" may be interpreted by an agent.
-But the actual creation of the expense must happen through deterministic application code.
+Introduciremos arquitectura hexagonal en los límites donde aporte aislamiento útil.
 
 ~~~mermaid
 flowchart TD
-    Text["User text"] --> Agent["Agent"]
-    Agent --> Tool["Structured tool call"]
-    Tool --> Validate["Validation"]
-    Validate --> App["Application operation"]
-    App --> Rules["Domain rules"]
-    App --> DB["Persistence"]
+    Web["Adaptador web"] --> App["Aplicación de gastos"]
+    Telegram["Adaptador de Telegram"] --> App
+    App --> Port["Puerto ExpenseStore"]
+    PG["Adaptador PostgreSQL"] -. "implementa" .-> Port
 ~~~
 
-The LLM must never directly modify the database or execute arbitrary SQL.
+El diagrama ilustra un posible puerto de persistencia, no una obligación de crearlo antes de que aporte valor. Los adaptadores de entrada invocan capacidades de aplicación; los de salida implementan capacidades que la aplicación necesita.
 
-Keep user/account identity out of model-selected arguments; trusted execution context determines ownership when accounts are added.
-Unknown required data must not be invented.
+La aplicación debe depender de abstracciones que representen capacidades cuando aíslen un límite significativo.
+Los adaptadores de infraestructura implementan esas capacidades.
 
-## 8. Tools
+No crees interfaces solo por flexibilidad teórica.
+Creá un puerto cuando exista un límite real. La importación de transacciones externas podrá introducir una capacidad TransactionSource cuando esa función exista.
 
-Agent tools are application capabilities exposed to the model.
+## 6. Estrategia de pruebas
 
-Examples:
+La técnica de prueba depende del problema.
+
+### Lógica de dominio
+
+Preferí TDD donde haya reglas de negocio:
+ROJO → VERDE → REFACTORIZAR.
+
+Ejemplos:
+- validación de gastos;
+- manejo de montos;
+- reglas de categorización;
+- detección de duplicados;
+- puntuación de conciliación.
+
+Escribí primero una prueba que falle por la regla buscada, implementá el comportamiento válido más pequeño y refactorizá mientras las pruebas sigan pasando.
+
+### Infraestructura
+
+Usá pruebas de integración para:
+- repositorios y operaciones de persistencia;
+- rutas HTTP;
+- adaptadores de API externas;
+- análisis de actualizaciones de mensajería.
+
+Simulá servicios externos solo en límites significativos. Verificá la persistencia contra una base real y aislada para pruebas. Ninguna prueba automatizada puede vaciar la base normal de desarrollo.
+
+### Interfaz
+
+Probá comportamientos importantes del usuario.
+Evitá verificar detalles triviales de implementación.
+
+Preferí «El usuario puede crear un gasto» a «El componente React tiene una variable de estado llamada amount».
+No uses TDD para un ajuste trivial de espaciado o estilo.
+
+### Del comportamiento observable hacia adentro
+
+Elegí el incremento desde el comportamiento observable del usuario y aplicá TDD desde el interior para sus reglas de dominio importantes.
+Conectá esa lógica con persistencia, HTTP e interfaz; luego verificá el recorrido completo.
+La implementación desde el interior y la entrega por incrementos verticales resuelven problemas distintos y pueden combinarse.
+
+## 7. Comportamiento de IA
+
+El comportamiento de un LLM no debe tratarse como lógica de negocio determinista.
+
+Por ejemplo, un agente puede interpretar «gasté 15 lucas en una pizza ayer».
+Pero la creación efectiva del gasto debe pasar por código de aplicación determinista.
+
+~~~mermaid
+flowchart TD
+    Text["Texto del usuario"] --> Agent["Agente"]
+    Agent --> Tool["Llamada a herramienta estructurada"]
+    Tool --> Validate["Validación"]
+    Validate --> App["Operación de aplicación"]
+    App --> Rules["Reglas de dominio"]
+    App --> DB["Persistencia"]
+~~~
+
+El LLM nunca debe modificar directamente la base ni ejecutar SQL arbitrario.
+
+La identidad del usuario o de la cuenta no debe formar parte de los argumentos elegidos por el modelo; cuando existan cuentas, el contexto de ejecución confiable determinará la propiedad.
+No inventes datos obligatorios desconocidos.
+
+## 8. Herramientas
+
+Las herramientas del agente son capacidades de la aplicación expuestas al modelo.
+
+Ejemplos:
 - create_expense;
 - update_expense;
 - search_expenses;
 - delete_expense;
 - get_spending_summary.
 
-Tools must:
-- have explicit schemas;
-- validate input;
-- perform one clear operation;
-- return structured results;
-- contain deterministic behaviour whenever possible.
+Las herramientas deben:
+- tener esquemas explícitos;
+- validar la entrada;
+- realizar una operación clara;
+- devolver resultados estructurados;
+- mantener comportamiento determinista siempre que sea posible.
 
-Permission, ownership and business validation belong in trusted code, not only in prompts.
-Tools reuse application operations; they do not introduce a separate parallel implementation of expense logic.
+Los permisos, la propiedad y la validación de negocio pertenecen al código confiable, no solo a las instrucciones del modelo.
+Las herramientas reutilizan operaciones de aplicación; no crean una implementación paralela de la lógica de gastos.
 
-## 9. AI evaluations
+## 9. Evaluaciones de IA
 
-Agent behaviour requires evals in addition to traditional tests.
+El comportamiento del agente requiere evaluaciones además de las pruebas tradicionales.
 
-Example:
+Ejemplo:
 
 ~~~text
-Input:
-"gasté 8500 en YPF"
+Entrada:
+«gasté 8500 en YPF»
 
-Expected:
-amount = 8500 pesos (850000 integer cents when calling the expense operation)
+Esperado:
+amount = 8500 pesos (850000 centavos enteros al llamar la operación de gastos)
 merchant = YPF
 category = FUEL
 ~~~
 
-Another:
+Otro:
 
 ~~~text
-Input:
-"ayer pagué 18 lucas de cena en efectivo"
+Entrada:
+«ayer pagué 18 lucas de cena en efectivo»
 
-Expected:
+Esperado:
 amount = 18000 pesos
 paymentMethod = CASH
-date = yesterday in the user's timezone
+date = ayer en la zona horaria del usuario
 ~~~
 
-Evaluation datasets will grow from real failures discovered while using the application.
-A regression discovered in production should become either a traditional automated test or an agent eval.
+Los conjuntos de evaluación crecerán a partir de fallas reales descubiertas durante el uso de la aplicación.
+Una regresión hallada en producción debe convertirse en una prueba automatizada tradicional o en una evaluación del agente.
 
-Start evals with the first agent feature. Include ambiguous input, missing required data, invalid tool arguments, date boundaries and duplicate/retry cases. Fix reference dates/context for reproducible examples.
+Empezá las evaluaciones con la primera función del agente. Incluí entradas ambiguas, datos obligatorios faltantes, argumentos de herramienta inválidos, límites de fecha y casos de duplicación o reintento. Fijá fechas y contexto de referencia para que los ejemplos sean reproducibles.
 
-Measure structured fields and selected operations against expected behaviour. Record model/prompt/tool versions, cost and latency when those features are introduced.
-Passing an eval dataset is evidence within that dataset, not a guarantee of universal correctness.
+Medí los campos estructurados y las operaciones elegidas frente al comportamiento esperado. Registrá versiones de modelo, instrucciones y herramientas, así como costo y latencia, cuando se introduzcan esas funciones.
+Que un conjunto de evaluación pase es evidencia dentro de ese conjunto, no una garantía de corrección universal.
 
-## 10. Git workflow
+## 10. Flujo de Git
 
-Use trunk-based development.
-Primary branch: main.
+Usá desarrollo basado en una rama principal.
+Rama principal: main.
 
-Work should happen through very short-lived branches when isolation or review is useful.
-Example: feature/create-expense.
+Trabajá en ramas de vida muy corta cuando el aislamiento o la revisión resulten útiles.
+Ejemplo: feature/create-expense.
 
-Expected lifecycle:
-main → small branch → implementation → tests → review → merge.
+Ciclo esperado:
+main → rama pequeña → implementación → pruebas → revisión → integración.
 
-Branches should normally live for hours rather than weeks.
-Avoid long-lived develop, integration or release-next branches unless the project later develops a real need for them.
+Normalmente, una rama debe durar horas y no semanas.
+Evitá ramas develop, integration o release-next de larga duración, salvo que aparezca una necesidad real.
 
-Initializing Git locally is separate from creating a GitHub repository.
-A remote, push or deployment is performed only when requested. Do not overwrite an existing repository or silently create a nested one.
+Inicializar Git localmente es distinto de crear un repositorio en GitHub.
+Solo se realizan operaciones remotas, push o despliegues cuando se solicitan. No sobrescribas un repositorio existente ni crees uno anidado en silencio.
 
-## 11. Continuous Integration
+## 11. Integración continua
 
-Every change merged into main must leave the repository healthy.
+Todo cambio integrado en main debe dejar el repositorio funcionando.
 
-CI should run:
+La integración continua debe ejecutar:
 ~~~bash
 npm run lint
 npm run typecheck
@@ -265,162 +265,163 @@ npm test
 npm run build
 ~~~
 
-Persistence features add mandatory isolated integration verification; the first UI flow adds an e2e check.
-A failing main branch has priority over new development.
+Las funciones con persistencia agregan verificación de integración aislada y obligatoria; el primer recorrido de interfaz agrega una prueba de extremo a extremo.
+Una falla en main tiene prioridad sobre trabajo nuevo.
 
-During documentation/bootstrap, business tests do not exist yet. State that clearly and configure the runner without inventing test coverage. CI may explicitly omit an empty suite during bootstrap; the first feature makes its real tests required.
+Durante la documentación y la inicialización todavía no existen pruebas de negocio. Declará esa situación con claridad y configurá el ejecutor sin inventar cobertura. Durante la inicialización, la integración continua puede omitir explícitamente una suite vacía; la primera función incorpora pruebas reales obligatorias.
 
-The CI definition being created locally does not mean GitHub has executed it.
-Report local checks separately from remote CI results.
+Crear localmente una definición de integración continua no significa que GitHub la haya ejecutado.
+Informá los resultados locales por separado de los remotos.
 
 ## 12. Commits
 
-Commits should be small and cohesive.
-A commit should represent one understandable change.
+Los commits deben ser pequeños y coherentes.
+Cada uno debe representar un cambio comprensible.
 
-Examples:
+Ejemplos:
 ~~~text
-feat: add expense creation use case
-test: validate negative expense amounts
-feat: persist expenses with postgres
-fix: reject malformed telegram messages
+feat: agregar creación de gastos
+test: validar rechazo de montos negativos
+feat: guardar gastos en postgres
+fix: rechazar mensajes de telegram mal formados
 ~~~
 
-Do not create commits containing unrelated changes.
-Review the diff and protect pre-existing uncommitted work.
-Commit only when the active task authorizes it; otherwise provide a suggested message and reviewable changes.
+No crees commits con cambios no relacionados.
+Revisá el diff y protegé el trabajo previo que todavía no se haya registrado.
+Hacé un commit solo cuando la tarea activa lo autorice; en caso contrario, entregá un mensaje sugerido y cambios revisables.
 
-## 13. Development workflow with Codex
+## 13. Flujo de desarrollo con Codex
 
-Codex is treated as an engineering collaborator, not as an automatic code generator.
+Codex es un colaborador de ingeniería, no un generador automático de código.
 
-For any non-trivial task:
+Para toda tarea no trivial:
 
-### Step 1 — Define the task
+### Paso 1 — Definir la tarea
 
-Describe the change similarly to a GitHub issue.
-Include context, desired behaviour, scope, non-goals and acceptance criteria.
+Describí el cambio como una incidencia de GitHub.
+Incluí contexto, comportamiento deseado, alcance, exclusiones y criterios de aceptación.
 
-### Step 2 — Ask for a plan
+### Paso 2 — Pedir un plan
 
-Before modifying code, Codex should:
-1. inspect the relevant code;
-2. identify affected components;
-3. propose an implementation plan;
-4. identify risks or assumptions.
+Antes de modificar código, Codex debe:
+1. inspeccionar el código relevante;
+2. identificar los componentes afectados;
+3. proponer un plan de implementación;
+4. identificar riesgos o supuestos.
 
-For sufficiently small tasks this step may be implicit.
+En tareas suficientemente pequeñas, este paso puede ser implícito.
 
-### Step 3 — Review the plan
+### Paso 3 — Revisar el plan
 
-The developer verifies:
-- whether the solution fits the architecture;
-- whether unnecessary abstractions are being introduced;
-- whether the scope remains small.
+El desarrollador comprueba:
+- si la solución encaja en la arquitectura;
+- si se introducen abstracciones innecesarias;
+- si el alcance sigue siendo pequeño.
 
-A plan-only request ends at this step.
-An explicit request to implement an already scoped task authorizes that task; the agent can explain its plan and proceed without demanding a second approval for routine steps.
+Una solicitud solo de planificación termina aquí.
+Una solicitud explícita de implementar una tarea ya delimitada autoriza esa tarea; el agente puede explicar su plan y avanzar sin exigir una segunda aprobación para pasos rutinarios.
 
-The initial bootstrap prompt provides that authorization for initialize-project only. It requests a plan, not implementation, for create-expense.
+La instrucción inicial de arranque autorizó únicamente initialize-project. Pidió un plan, no la implementación, para create-expense.
 
-### Step 4 — Implement
+### Paso 4 — Implementar
 
-Codex implements only the approved task.
-It should not automatically implement adjacent features.
+Codex implementa solo la tarea autorizada.
+No debe incorporar automáticamente funciones adyacentes.
 
-### Step 5 — Verify
+### Paso 5 — Verificar
 
-Codex must run relevant tests, type checker, linter and build.
-Passing verification is part of the definition of done.
-Report commands actually run, outcomes and unavailable checks; do not describe a blocked check as passing.
+Codex debe ejecutar las pruebas pertinentes, el verificador de tipos, el linter y la compilación.
+La verificación aprobada forma parte de la definición de terminado.
+Informá los comandos realmente ejecutados, sus resultados y los controles indisponibles; no presentes un control bloqueado como aprobado.
 
-### Step 6 — Human review
+### Paso 6 — Revisión humana
 
-The developer reviews the diff and should be able to explain:
-- what changed;
-- why it changed;
-- how data flows through the feature;
-- which tests verify it;
-- what architectural decisions were introduced.
+El desarrollador revisa el diff y debe poder explicar:
+- qué cambió;
+- por qué cambió;
+- cómo fluyen los datos por la función;
+- qué pruebas lo verifican;
+- qué decisiones de arquitectura se introdujeron.
 
-Code that cannot be understood should not be merged merely because it works.
+El código incomprensible no debe integrarse solo porque funcione.
 
-### Step 7 — Commit
+### Paso 7 — Commit
 
-Create a small cohesive commit when authorized.
-Then continue with the next task.
+Creá un commit pequeño y coherente cuando esté autorizado.
+Después continuá con la siguiente tarea.
 
-## 14. Context engineering
+## 14. Organización del contexto
 
-Persistent information should be placed in the appropriate artifact.
+La información persistente debe quedar en el documento apropiado.
 
-| Artifact | Purpose |
+| Documento | Propósito |
 | --- | --- |
-| README.md | Project introduction, actual state, setup and run instructions |
-| AGENTS.md | Concise operational instructions, architecture rules, commands and completion criteria |
-| docs/product.md | Problem, users, product principles and feature requirements |
-| docs/architecture.md | Modules, dependencies, external systems and major design choices |
-| docs/decisions/ | Short ADRs recording context, decision and consequences |
-| docs/features/ | Specifications for non-trivial features |
-| prompts/ | Reusable task prompts that refer to repository context |
+| README.md | Presentación del proyecto, estado real, configuración e instrucciones de ejecución |
+| AGENTS.md | Instrucciones operativas breves, reglas de arquitectura, comandos y criterios de finalización |
+| docs/product.md | Problema, usuarios, principios de producto y requisitos de funciones |
+| docs/architecture.md | Módulos, dependencias, sistemas externos y decisiones de diseño principales |
+| docs/decisions/ | Decisiones breves con contexto y consecuencias |
+| docs/features/ | Especificaciones de funciones no triviales |
+| prompts/ | Instrucciones reutilizables que remiten al contexto del repositorio |
 
-Keep AGENTS.md concise. It is not a copy of this entire methodology.
+Mantené AGENTS.md breve: no debe copiar toda esta metodología.
 
-ADR examples:
+Ejemplos de decisiones:
 - 001-modular-monolith.md;
 - 002-telegram-before-whatsapp.md;
-- 003-money-as-integer.md.
+- 003-money-as-integer.md;
+- 005-telegram-local-polling.md.
 
-Feature examples:
+Ejemplos de especificaciones:
 - create-expense.md;
-- telegram-expense-entry.md, when that work begins;
-- mercadopago-import.md, after provider/data investigation.
+- telegram-expense-entry.md;
+- mercadopago-import.md, después de investigar proveedor y datos.
 
-Document actual decisions and behaviours. Distinguish implemented features, current tasks and roadmap ideas.
-Do not create a large harness or speculative future specs before they solve a concrete problem.
+Documentá decisiones y comportamientos reales. Distinguí lo implementado, las tareas actuales y las ideas de la hoja de ruta.
+No crees un armazón grande ni especificaciones futuras especulativas antes de que resuelvan un problema concreto.
 
-## 15. Definition of Done
+## 15. Definición de terminado
 
-A task is complete when:
-- acceptance criteria are satisfied;
-- relevant automated tests pass;
-- type checking passes;
-- lint passes;
-- the application builds;
-- architecture remains consistent;
-- documentation is updated when necessary;
-- no unrelated changes are included;
-- the developer understands the resulting implementation.
+Una tarea está terminada cuando:
+- cumple sus criterios de aceptación;
+- pasan las pruebas automatizadas pertinentes;
+- pasa la verificación de tipos;
+- pasa el linter;
+- la aplicación compila;
+- la arquitectura sigue siendo coherente;
+- se actualiza la documentación cuando es necesario;
+- no se incluyen cambios ajenos;
+- el desarrollador comprende la implementación resultante.
 
-For AI features, relevant evals must also pass.
+Para funciones de IA, también deben pasar las evaluaciones pertinentes.
 
-Apply the checks that exist and are relevant to the task. Markdown-only changes require link/consistency verification, not a nonexistent app build.
-For bootstrap and blocked environments, report what was verified and what remains outstanding; a limitation is not silently waived.
-No merge is justified by unsupported claims of success.
+Aplicá los controles existentes y pertinentes para cada tarea. Los cambios solo de Markdown requieren verificar enlaces y coherencia, no una compilación de aplicación que no corresponde.
+En la inicialización o en entornos bloqueados, informá qué se verificó y qué queda pendiente; una limitación no se omite en silencio.
+Ninguna integración se justifica con afirmaciones de éxito sin respaldo.
 
-## 16. Avoid premature complexity
+## 16. Evitar complejidad prematura
 
-Do not introduce technologies only because they may eventually be useful.
+No introduzcas tecnologías solo porque algún día podrían ser útiles.
 
-Initially avoid:
-- microservices;
-- event buses;
+Al inicio evitá:
+- microservicios;
+- buses de eventos;
 - Kubernetes;
 - Redis;
-- vector databases;
-- multiple AI agents;
+- bases vectoriales;
+- varios agentes de IA;
 - CQRS;
 - event sourcing;
-- complex repository abstractions;
-- generic plugin frameworks.
+- abstracciones complejas de repositorios;
+- sistemas genéricos de plugins.
 
-Introduce them only when a concrete problem justifies them.
+Incorporalos únicamente cuando un problema concreto los justifique.
 
-## 17. Guiding principle
+## 17. Principio rector
 
-Prefer simple, observable, testable, replaceable and understandable software.
-Do not optimize for cleverness, genericity, promises of being future-proof or abstraction counts.
+Preferí software sencillo, observable, comprobable, reemplazable y comprensible.
+No optimices para la astucia, la generalidad, las promesas de preparación para el futuro ni el número de abstracciones.
 
-The system should become more sophisticated only as the problems it solves become more sophisticated.
+El sistema debe sofisticarse solo a medida que se sofistiquen los problemas que resuelve.
 
-This file adapts the methodology discussed and edited with Tomás into repository documentation. Project-specific details resolve ambiguities without changing its incremental development philosophy.
+Este archivo adapta a la documentación del repositorio la metodología conversada y editada con Tomás. Los detalles propios del proyecto resuelven ambigüedades sin alterar su enfoque de desarrollo incremental.

@@ -1,7 +1,7 @@
 # ADR 005 — Telegram local con polling e idempotencia persistente
 
-Status: Aceptada e implementada en v0.2.
-Date: 2026-10-08.
+Estado: aceptada e implementada en v0.2.
+Fecha: 2026-10-08.
 
 ## Contexto
 
@@ -24,4 +24,4 @@ No se necesitan túneles, despliegue remoto, colas ni nuevas cuentas en la app. 
 
 La tabla de actualizaciones es específica de este canal y existe para sostener una regla observable: un mismo mensaje no crea más de un gasto. No es un sistema genérico de eventos ni una tabla de memoria del agente.
 
-Referencias: [Telegram Bot API — Getting updates](https://core.telegram.org/bots/api#getting-updates), [setWebhook](https://core.telegram.org/bots/api#setwebhook).
+Referencias: [API de bots de Telegram — recepción de actualizaciones](https://core.telegram.org/bots/api#getting-updates), [configuración de webhooks](https://core.telegram.org/bots/api#setwebhook).

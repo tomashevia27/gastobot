@@ -1,170 +1,172 @@
-# GastoBot — Architecture
+# GastoBot — Arquitectura
 
-## Status
+## Estado
 
-The local manual-expense flow supports creation, editing, deletion and filtered pagination. The current-month summary remains independent of list filters. v0.2 adds a local Telegram command adapter for expense creation.
+El flujo local de gastos manuales permite crear, editar, eliminar y consultar una lista filtrada y paginada. El resumen del mes actual es independiente de los filtros de la lista. La v0.2 agrega un adaptador local de Telegram para crear gastos mediante comandos.
 
-## Initial system
+## Sistema inicial
 
-One Next.js application serves the UI and backend. PostgreSQL stores records. There are no microservices or separately deployed API servers.
+Una aplicación Next.js sirve la interfaz y el backend. PostgreSQL guarda los registros. No hay microservicios ni servidores de API desplegados por separado.
 
 ~~~mermaid
 flowchart TD
-    UI["Web form and expense list"] --> HTTP["Next.js Route Handlers"]
-    HTTP --> App["Expense application operations"]
-    App --> Domain["Pure validation and money rules"]
-    App --> Store["PostgreSQL persistence via Prisma"]
+    UI["Formulario web y lista de gastos"] --> HTTP["Manejadores de rutas de Next.js"]
+    HTTP --> App["Operaciones de aplicación de gastos"]
+    App --> Domain["Reglas puras de validación y dinero"]
+    App --> Store["Persistencia PostgreSQL mediante Prisma"]
     Store --> DB["PostgreSQL"]
 ~~~
 
-Arrows show calls/dependencies in the initial implementation. Validation/domain code never depends on the storage adapter. Database access is infrastructure called by application code.
+Las flechas muestran llamadas y dependencias de la implementación inicial. El código de dominio y validación no depende del adaptador de almacenamiento. El acceso a la base es infraestructura invocada por el código de aplicación.
 
 ## Telegram v0.2
 
 ~~~mermaid
 flowchart TD
-    Telegram["Telegram Bot API"] --> Poller["Local getUpdates process"]
-    Poller --> Guard["Private chat and allowed user check"]
-    Guard --> Parser["Deterministic command parser"]
-    Parser --> Create["Expense creation operation"]
-    Create --> Rules["Shared expense validation"]
-    Create --> Tx["Prisma transaction"]
-    Tx --> Expense["expenses: source TELEGRAM"]
-    Tx --> Update["telegram_processed_updates: bot/update key"]
-    Poller --> Reply["sendMessage after processing"]
+    Telegram["API de bots de Telegram"] --> Poller["Proceso local getUpdates"]
+    Poller --> Guard["Verificación de chat privado y usuario autorizado"]
+    Guard --> Parser["Análisis del comando determinista"]
+    Parser --> Create["Operación de creación del gasto"]
+    Create --> Rules["Validación compartida del gasto"]
+    Create --> Tx["Transacción Prisma"]
+    Tx --> Expense["expenses: origen TELEGRAM"]
+    Tx --> Update["telegram_processed_updates: clave de bot y actualización"]
+    Poller --> Reply["sendMessage después de procesar"]
 ~~~
 
-`scripts/telegram-poll.ts` loads local configuration and starts the loop. `src/modules/telegram/client.ts` maps the Telegram HTTP API, `command.ts` parses the restricted syntax, `processor.ts` authorizes and handles one update, and `poller.ts` advances the offset only after processing and replying. The Telegram adapter calls the same application validation used by the web route. PostgreSQL has a unique `(bot_id, update_id)` key; expense creation and recording that key are atomic. Deleting an expense sets the update's `expense_id` to null and keeps the key, so replay cannot recreate it. Reply delivery may repeat after an ambiguous network failure.
+`scripts/telegram-poll.ts` carga la configuración local e inicia el ciclo. `src/modules/telegram/client.ts` adapta la API HTTP de Telegram, `command.ts` analiza la sintaxis limitada, `processor.ts` autoriza y procesa una actualización, y `poller.ts` avanza el desplazamiento (`offset`) solo después de procesar y responder. El adaptador de Telegram llama a la misma validación de aplicación que usa la ruta web. PostgreSQL tiene una clave única `(bot_id, update_id)`; la creación del gasto y el registro de esa clave son atómicos. Al borrar un gasto, el `expense_id` de la actualización queda nulo y la clave se conserva, por lo que un reintento no lo recrea. Una respuesta puede repetirse después de una falla de red ambigua.
 
-The bot token never enters a client bundle. The web remains bound to local use without public authentication. A separate Node process is required while Telegram entry is in use. See [ADR 005](decisions/005-telegram-local-polling.md) and the [setup guide](telegram-bot-setup.md).
+El token del bot nunca llega al código del cliente. La web sigue limitada al uso local y no tiene autenticación pública. Para usar Telegram debe estar activo un proceso Node separado. Consultá [ADR 005](decisions/005-telegram-local-polling.md) y la [guía de configuración](telegram-bot-setup.md).
 
-## Stack
+## Tecnologías
 
-- Next.js App Router and React.
-- TypeScript with strict checking.
-- npm and a committed lockfile.
-- CSS Modules/CSS initially.
-- Zod for validating external input.
-- PostgreSQL and Prisma for persistence/migrations.
-- Vitest for business and integration tests.
-- Playwright when the first browser flow exists.
-- GitHub Actions for CI configuration.
+- Next.js App Router y React.
+- TypeScript con verificación estricta.
+- npm y archivo de bloqueo versionado.
+- CSS Modules/CSS inicialmente.
+- Zod para validar datos externos.
+- PostgreSQL y Prisma para persistencia y migraciones.
+- Vitest para pruebas de negocio e integración.
+- Playwright para recorridos de navegador.
+- GitHub Actions para integración continua.
 
-Exact versions, Prisma configuration and required adapters are selected against the official documentation for the installed stable versions during bootstrap. Do not reuse obsolete generator, lint or ORM setup commands without checking them.
+Durante la inicialización se eligieron versiones exactas, configuración Prisma y adaptadores necesarios según la documentación oficial de las versiones estables instaladas. No reutilices comandos obsoletos para generación, lint u ORM sin comprobarlos.
 
-## Target structure
+## Estructura objetivo
 
-| Path | Responsibility | Created when |
+| Ruta | Responsabilidad | Momento de creación |
 | --- | --- | --- |
-| src/app/layout.tsx, page.tsx | App Router entry points | Bootstrap |
-| src/app/api/expenses/route.ts | HTTP mapping to application operations | First feature |
-| src/modules/expenses/domain/ | Expense concepts, money parsing and validation | First feature |
-| src/modules/expenses/application/ | Create/list/summary operations | First feature |
-| src/modules/expenses/infrastructure/ | Prisma persistence mapping | First feature |
-| src/modules/expenses/ui/ | Expense form/list components | First feature |
-| src/server/ | Server-only database client/configuration | First feature or ORM setup as needed |
-| prisma/ | ORM configuration and versioned migrations | Bootstrap config; feature migration later |
-| tests/integration/ | Tests against dedicated PostgreSQL test DB | First feature |
-| tests/e2e/ | Browser user-flow tests | First feature |
-| docs/ | Product, architecture, methodology, ADRs, specs | Supplied in this package |
-| prompts/ | Reusable development prompts | Supplied in this package |
-| .github/workflows/ | CI workflow | Bootstrap |
+| src/app/layout.tsx, page.tsx | Puntos de entrada de App Router | Inicialización |
+| src/app/api/expenses/route.ts | Traducción HTTP hacia operaciones de aplicación | Primera función |
+| src/modules/expenses/domain/ | Conceptos de gasto, análisis del monto y validación | Primera función |
+| src/modules/expenses/application/ | Operaciones de creación, listado y resumen | Primera función |
+| src/modules/expenses/infrastructure/ | Adaptación de persistencia Prisma | Primera función |
+| src/modules/expenses/ui/ | Componentes de formulario y lista de gastos | Primera función |
+| src/modules/telegram/ | Comandos, cliente HTTP y procesamiento de actualizaciones | v0.2 |
+| scripts/telegram-poll.ts | Proceso local de recepción de Telegram | v0.2 |
+| src/server/ | Cliente y configuración de base solo del servidor | Primera función o configuración del ORM |
+| prisma/ | Configuración del ORM y migraciones versionadas | Configuración inicial; migración con cada función necesaria |
+| tests/integration/ | Pruebas contra una base PostgreSQL exclusiva | Primera función |
+| tests/e2e/ | Pruebas de recorridos de usuario en navegador | Primera función |
+| docs/ | Producto, arquitectura, metodología, decisiones y especificaciones | Paquete inicial |
+| prompts/ | Instrucciones reutilizables de desarrollo | Paquete inicial |
+| .github/workflows/ | Flujo de integración continua | Inicialización |
 
-These are responsibilities, not a demand to create empty folders/classes.
-Tests for pure rules can live beside the module implementation.
-A port/interface is introduced when it isolates a meaningful persistence/provider boundary, not merely because a folder name suggests one.
+Son responsabilidades, no una orden de crear carpetas o clases vacías.
+Las pruebas de reglas puras pueden estar junto a la implementación del módulo.
+Se introduce un puerto o interfaz cuando aísla un límite significativo de persistencia o proveedor, no solo porque lo sugiera el nombre de una carpeta.
 
-## Dependency rules
+## Reglas de dependencia
 
-- UI sends input and renders outcomes; it does not access the database.
-- Route Handlers parse/validate transport input and map errors/status codes.
-- Application operations implement the feature independently of the HTTP request.
-- Domain code represents stable business rules and is framework-independent.
-- Persistence maps between domain/DTO values and Prisma/database types.
-- Prisma types do not become the public HTTP contract.
-- Server Components may call application queries server-side without fetching their own HTTP API.
-- Shared request validation does not replace business-rule validation at the application boundary.
-- Telegram and future agent-tool adapters reuse the application operations.
+- La interfaz envía datos y muestra resultados; no accede a la base.
+- Los manejadores de rutas analizan y validan los datos de transporte, y traducen errores y códigos de estado.
+- Las operaciones de aplicación implementan la función sin depender de la solicitud HTTP.
+- El código de dominio representa reglas de negocio estables y no depende de frameworks.
+- La persistencia convierte entre valores de dominio o DTO y tipos de Prisma o de la base.
+- Los tipos de Prisma no constituyen el contrato HTTP público.
+- Los componentes de servidor pueden llamar consultas de aplicación directamente, sin solicitar su propia API HTTP.
+- La validación compartida de solicitudes no reemplaza la validación de negocio en el límite de aplicación.
+- Telegram y futuros adaptadores de herramientas del agente reutilizan las operaciones de aplicación.
 
-## First feature flow
+## Flujo de la primera función
 
-1. Form submits a JSON request containing amount as a localized string.
-2. POST /api/expenses validates shape, enum values, strings and date.
-3. Pure money parsing converts the amount string to integer cents exactly.
-4. createExpense validates business rules and asks persistence to insert.
-5. Prisma maps to PostgreSQL; the expense is stored with server-assigned id/source/timestamps.
-6. The backend returns a safe DTO after the insert succeeds.
-7. UI updates/refetches the minimal list and current-month total.
-8. A failed insert returns a failure and never shows a saved expense.
+1. El formulario envía una solicitud JSON con el monto como cadena de formato local.
+2. POST /api/expenses valida estructura, enumeraciones, cadenas y fecha.
+3. El análisis puro del monto convierte la cadena a centavos enteros exactos.
+4. createExpense valida las reglas de negocio y pide a persistencia que inserte el registro.
+5. Prisma lo adapta a PostgreSQL; el gasto se guarda con id, origen y marcas de tiempo asignados por el servidor.
+6. Después de insertar, el backend devuelve un DTO seguro.
+7. La interfaz actualiza o vuelve a consultar la lista mínima y el total del mes actual.
+8. Una inserción fallida devuelve un error y nunca muestra un gasto guardado.
 
-For this learning project, explicit HTTP endpoints make the boundary visible.
-Server Actions are not needed for the first slice. No second API framework is required.
+Para este proyecto de aprendizaje, los endpoints HTTP explícitos hacen visible el límite.
+La primera función no necesita Server Actions ni otro framework de API.
 
-## Initial expense record
+## Registro inicial del gasto
 
-| Field | Representation | Notes |
+| Campo | Representación | Nota |
 | --- | --- | --- |
-| id | UUID / string | Assigned by backend |
-| amount_cents | PostgreSQL BIGINT | Positive exact integer |
-| currency | ARS | Only supported currency initially |
-| occurred_on | PostgreSQL DATE | Civil date, not UTC instant |
-| category | Valid category code | UNCATEGORIZED default |
-| payment_method | Valid method code | Required |
-| merchant | Nullable string | Up to 120 characters |
-| description | Nullable string | Up to 500 characters |
-| source | MANUAL_WEB or TELEGRAM | Assigned by the originating server adapter |
-| created_at | UTC timestamp | Assigned by backend |
-| updated_at | UTC timestamp | Assigned by backend |
+| id | UUID / cadena | Asignado por el backend |
+| amount_cents | BIGINT de PostgreSQL | Entero positivo exacto |
+| currency | ARS | Única moneda admitida por ahora |
+| occurred_on | DATE de PostgreSQL | Fecha civil, no instante UTC |
+| category | Código de categoría válido | Valor inicial UNCATEGORIZED |
+| payment_method | Código de medio de pago válido | Obligatorio |
+| merchant | Cadena anulable | Hasta 120 caracteres |
+| description | Cadena anulable | Hasta 500 caracteres |
+| source | MANUAL_WEB o TELEGRAM | Asignado por el adaptador de entrada del servidor |
+| created_at | Marca de tiempo UTC | Asignada por el backend |
+| updated_at | Marca de tiempo UTC | Asignada por el backend |
 
-Do not add external_id, reconciliation status or agent memory tables before their features need them.
-The local single-user milestone has no user table. Introducing accounts requires an ownership migration and scoping every operation before public/multi-user access.
+No agregues external_id, estado de conciliación ni tablas de memoria del agente antes de que sus funciones los necesiten.
+El hito local de una sola persona no tiene tabla de usuarios. Crear cuentas requiere una migración de propiedad y limitar cada operación por usuario antes de un uso público o con varias personas.
 
-### Money boundaries
+### Límites del dinero
 
-Application cents are validated safe integers. For an initial expense, the maximum is 99,999,999,999 cents (ARS 999,999,999.99), an explicit technical limit. Persistence uses BIGINT because PostgreSQL's ordinary integer is too small.
+Los centavos de aplicación se validan como enteros seguros. El máximo de un gasto individual es 99.999.999.999 centavos (ARS 999.999.999,99), un límite técnico explícito. La persistencia usa BIGINT porque el entero ordinario de PostgreSQL resulta insuficiente.
 
-Prisma BIGINT values are mapped deliberately. Never JSON-serialize a raw bigint or silently cast an arbitrarily large aggregate to number. Aggregate in integers and serialize totals as decimal integer strings where necessary; presentation formatting is separate.
+Los valores BIGINT de Prisma se convierten deliberadamente. Nunca serialices un bigint sin convertir a JSON ni conviertas silenciosamente un agregado arbitrariamente grande a number. Sumá en enteros y serializá los totales como cadenas de enteros decimales cuando sea necesario; el formato de presentación es independiente.
 
-A request never sends a fractional JS number as the monetary source of truth. Exact parsing rules are in the feature spec and ADR 003.
+Una solicitud nunca usa un número JS fraccionario como fuente de verdad monetaria. Las reglas exactas de análisis están en la especificación de la función y en ADR 003.
 
-### Dates
+### Fechas
 
-Keep occurrence dates as YYYY-MM-DD in transport/domain values. Use an explicit persistence mapping to DATE. Do not derive civil dates by converting local midnight through a timezone and slicing a UTC string.
+Conservá las fechas de ocurrencia como AAAA-MM-DD en transporte y dominio. Usá una conversión explícita a DATE para persistir. No derives la fecha civil convirtiendo una medianoche local a una zona horaria y recortando una cadena UTC.
 
-created_at and updated_at describe instants, independent of the occurrence date.
-Current-month ranges use local calendar dates: first day inclusive, next month's first day exclusive.
+created_at y updated_at representan instantes, independientemente de la fecha de ocurrencia.
+Los rangos del mes actual usan fechas de calendario locales: primer día incluido y primer día del mes siguiente excluido.
 
-## Error contract
+## Contrato de errores
 
-Use structured application errors:
-- validation errors with field-level feedback;
-- unexpected persistence/server failures with a generic UI message;
-- diagnostic details only in server logs, without tokens or full personal payloads.
+Usá errores estructurados de aplicación:
+- errores de validación con indicaciones por campo;
+- fallas inesperadas de persistencia o servidor con un mensaje genérico para la interfaz;
+- detalles de diagnóstico solo en los registros del servidor, sin tokens ni datos personales completos.
 
-POST returns 201 after persistence, 400 for invalid input and 500 for an unexpected server failure.
-PUT on an expense id replaces editable fields and DELETE permanently removes the record; both return 404 for an absent id. GET list parameters are validated and pagination runs in PostgreSQL.
-Do not trust request-supplied ids, source, timestamps or future user identity fields.
+POST devuelve 201 después de guardar, 400 para datos inválidos y 500 ante una falla inesperada del servidor.
+PUT reemplaza los campos editables de un gasto y DELETE elimina el registro de forma permanente; ambos devuelven 404 si el id no existe. Se validan los parámetros de GET para la lista y la paginación se ejecuta en PostgreSQL.
+No confíes en id, origen, marcas de tiempo ni futuros campos de identidad enviados por el cliente.
 
-## Future boundaries
+## Límites futuros
 
-Messaging channels are inbound adapters. Import providers are outbound/external-data adapters.
-The LLM selects structured tools; tools validate and call application operations.
+Los canales de mensajería son adaptadores de entrada. Los proveedores de importación son adaptadores de salida o de datos externos.
+El LLM elige herramientas estructuradas; estas validan y llaman operaciones de aplicación.
 
-Business data lives in PostgreSQL. Agent preferences and task instructions have separate responsibilities.
-One agent is the initial design; no orchestration framework is required before it solves a concrete need.
+Los datos de negocio viven en PostgreSQL. Las preferencias del agente y las instrucciones de tareas tienen responsabilidades distintas.
+El diseño inicial usa un solo agente; no hace falta un framework de orquestación antes de resolver una necesidad concreta.
 
-## Local development and CI
+## Desarrollo local e integración continua
 
-PostgreSQL runs locally via Docker Compose, with a named volume and loopback-only port binding.
-Tests use a different database/URL and must never truncate the development database.
+PostgreSQL corre localmente mediante Docker Compose, con un volumen con nombre y un puerto limitado a la interfaz local.
+Las pruebas usan otra base y URL; nunca deben vaciar la base de desarrollo.
 
-The first feature adds domain tests, a migration, isolated integration runs and a browser path. The test PostgreSQL service uses a separate database and temporary storage; commands guard its URL before running.
+La primera función incorporó pruebas de dominio, una migración, integración aislada y un recorrido de navegador. El servicio PostgreSQL de pruebas usa una base distinta y almacenamiento temporal; los comandos comprueban la URL antes de ejecutarse.
 
-No network call, secret key or live financial account is needed to build/test the manual expense feature.
+No se necesita una llamada de red, clave secreta ni cuenta financiera real para construir y probar la función manual de gastos. Las pruebas automatizadas de Telegram usan un cliente simulado; usar el bot real sí requiere configurarlo.
 
-## Reference documentation
+## Documentación de referencia
 
-Checked while preparing this package on 2026-10-06; verify again for installed versions:
-- [Next.js installation](https://nextjs.org/docs/app/getting-started/installation)
-- [Prisma PostgreSQL connector](https://www.prisma.io/docs/orm/core-concepts/supported-databases/postgresql)
-- [Codex project instructions](https://developers.openai.com/codex/guides/agents-md/)
+Comprobada al preparar el paquete el 2026-10-06; verificá de nuevo según las versiones instaladas:
+- [Instalación de Next.js](https://nextjs.org/docs/app/getting-started/installation)
+- [Conector PostgreSQL de Prisma](https://www.prisma.io/docs/orm/core-concepts/supported-databases/postgresql)
+- [Instrucciones de proyecto de Codex](https://developers.openai.com/codex/guides/agents-md/)

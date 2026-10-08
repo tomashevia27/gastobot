@@ -1,20 +1,20 @@
-# ADR 002 — Telegram before WhatsApp
+# ADR 002 — Telegram antes que WhatsApp
 
-Status: Accepted roadmap order; implementation deferred.
-Date: 2026-10-06.
+Estado: orden de la hoja de ruta aceptado; Telegram se implementó localmente en v0.2 y WhatsApp sigue pendiente.
+Fecha: 2026-10-06.
 
-## Context
+## Contexto
 
-The desired habit is sending a short message to record a expense. Starting with multiple messaging providers would distract from learning the basic HTTP/persistence flow.
+El hábito buscado es enviar un mensaje breve para registrar un gasto. Empezar con varios proveedores de mensajería distraería del aprendizaje del flujo básico de HTTP y persistencia.
 
-## Decision
+## Decisión
 
-Finish manual web operations first. Add Telegram as the first messaging channel.
-Begin with deterministic commands, then add natural-language interpretation through validated tools.
-Add WhatsApp only after Telegram and the agent flow are reliable and its official integration requirements are investigated.
+Terminar primero las operaciones manuales en la web. Incorporar Telegram como primer canal de mensajería.
+Comenzar con comandos deterministas y luego agregar interpretación de lenguaje natural mediante herramientas validadas.
+Incorporar WhatsApp solo después de que Telegram y el flujo del agente sean confiables y se investiguen sus requisitos oficiales de integración.
 
-## Consequences
+## Consecuencias
 
-No bot credentials or webhook endpoint are needed in v0.1.
-Expense operations must remain reusable without coupling them to an HTTP request or a chat.
-The decision does not assume access to a personal WhatsApp self-chat or promise a provider's future pricing/availability.
+En v0.1 no hicieron falta credenciales de bot ni un endpoint de webhook. La v0.2 usa un proceso local de Telegram, según [ADR 005](005-telegram-local-polling.md).
+Las operaciones de gastos deben seguir siendo reutilizables, sin quedar acopladas a una solicitud HTTP ni a un chat.
+La decisión no presupone acceso a un chat personal de WhatsApp ni promete precios o disponibilidad futuros del proveedor.

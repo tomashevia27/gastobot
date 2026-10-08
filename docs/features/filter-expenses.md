@@ -1,11 +1,11 @@
-# Feature — Filter and navigate expenses
+# Función — Filtrar gastos y navegar por la lista
 
-Status: Implemented locally.
+Estado: implementada localmente.
 
-The expense list can be filtered by one calendar month (`YYYY-MM`) and one category. Both filters are optional and combine when selected. The default shows all dates and categories. Results keep the existing order: occurrence date descending, creation time descending, then id.
+La lista de gastos puede filtrarse por un mes calendario (`AAAA-MM`) y una categoría. Ambos filtros son opcionales y se combinan cuando se eligen. Por defecto se muestran todas las fechas y categorías. Los resultados mantienen el orden existente: fecha de ocurrencia descendente, hora de creación descendente y finalmente id.
 
-`GET /api/expenses` accepts `month`, `category` and a one-based `page`. Invalid, repeated or unknown parameters return 400. The backend returns at most 20 records per page, the filtered record count, current page and whether another page exists. Previous and next controls let the user navigate. An empty result has a distinct message from an empty database.
+`GET /api/expenses` acepta `month`, `category` y `page` desde 1. Los parámetros inválidos, repetidos o desconocidos devuelven 400. El backend devuelve hasta 20 registros por página, el número de registros filtrados, la página actual y si existe otra página. Los controles anterior y siguiente permiten navegar. Una búsqueda sin resultados tiene un mensaje distinto al de una base sin gastos.
 
-The summary card remains the total of the current Buenos Aires month across all categories, independent of list filters. Creating, editing or deleting a record refreshes the selected list page and summary from PostgreSQL.
+La tarjeta de resumen conserva el total del mes actual de Buenos Aires para todas las categorías, independientemente de los filtros de la lista. Crear, editar o eliminar un registro vuelve a consultar en PostgreSQL la página seleccionada y el resumen.
 
-Verification: unit tests cover query rules and calendar boundaries; integration tests check combined filtering, order, count and paging; a browser test changes filters and navigates results.
+Verificación: las pruebas unitarias cubren reglas de consulta y límites de calendario; las de integración comprueban filtros combinados, orden, recuento y paginación; una prueba de navegador cambia filtros y navega por los resultados.

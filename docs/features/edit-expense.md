@@ -1,11 +1,11 @@
-# Feature — Edit a manual expense
+# Función — Editar un gasto manual
 
-Status: Implemented locally.
+Estado: implementada localmente.
 
-An existing manual expense can be edited from the list. The form starts with its saved amount, civil date, category, payment method, merchant and description. Saving replaces all six editable values; cancelling leaves the record unchanged.
+Un gasto manual existente puede editarse desde la lista. El formulario comienza con el monto, la fecha civil, la categoría, el medio de pago, el comercio y la descripción guardados. Guardar reemplaza los seis valores editables; cancelar deja el registro intacto.
 
-The application validates the complete input with the same rules used for creation. `PUT /api/expenses/{id}` returns the updated DTO, 400 with field errors for invalid input, 404 for an absent or malformed id, and generic 500 feedback for unexpected failures. The backend retains the id, currency, source and created timestamp; `updatedAt` changes on a successful edit.
+La aplicación valida todos los datos con las mismas reglas de creación. `PUT /api/expenses/{id}` devuelve el DTO actualizado; ante datos inválidos devuelve 400 con errores por campo, ante un id inexistente o mal formado devuelve 404 y ante fallas inesperadas devuelve un mensaje genérico con 500. El backend conserva id, moneda, origen y marca de creación; `updatedAt` cambia cuando la edición se guarda correctamente.
 
-After success, the list and current-month total are refreshed from PostgreSQL. A date change across a month boundary affects the appropriate total. A failed request preserves form values and does not claim the edit was saved.
+Después de guardar, la lista y el total del mes actual se vuelven a consultar en PostgreSQL. Cambiar la fecha a otro mes afecta el total que corresponde. Una solicitud fallida conserva los valores del formulario y no afirma que la edición se haya guardado.
 
-Verification: domain validation remains covered; integration tests check update/readback, immutable fields, invalid input, missing records and total changes; a browser test edits and reloads an expense.
+Verificación: las pruebas de dominio siguen cubriendo la validación; las de integración comprueban actualización y lectura, campos inmutables, datos inválidos, registros inexistentes y cambios de total; una prueba de navegador edita un gasto y vuelve a cargarlo.

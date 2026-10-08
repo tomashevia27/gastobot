@@ -1,32 +1,32 @@
-# ADR 003 — Money as integer cents
+# ADR 003 — Dinero como centavos enteros
 
-Status: Accepted.
-Date: 2026-10-06.
+Estado: aceptada.
+Fecha: 2026-10-06.
 
-## Context
+## Contexto
 
-Binary floating-point arithmetic can introduce errors in decimal money calculations. The UI uses pesos and Argentine formatting; storage must be exact.
+La aritmética binaria de punto flotante puede introducir errores en cálculos de dinero decimal. La interfaz usa pesos y formato argentino; el almacenamiento debe ser exacto.
 
-PostgreSQL INTEGER is too small for the intended monetary range. Prisma/database integer representations also need an explicit serialization boundary.
+El tipo INTEGER de PostgreSQL es demasiado pequeño para el rango monetario previsto. Las representaciones enteras de Prisma y de la base también necesitan un límite explícito de serialización.
 
-## Decision
+## Decisión
 
-- v0.1 supports ARS only.
-- Parse the UI amount from a string; convert whole and fractional decimal digits to integer cents without parseFloat(amount) * 100.
-- Store cents as PostgreSQL BIGINT.
-- Validate an individual expense between 1 and 99,999,999,999 cents.
-- Application number values must pass safe-integer checks.
-- Map database bigint explicitly; DTO aggregate amounts can be decimal integer strings.
-- Sum integer minor units; do not round fractional floats as a repair strategy.
-- Format ARS for presentation separately from validation and storage.
+- Las versiones locales actuales solo admiten ARS.
+- Interpretar el monto de la interfaz desde una cadena; convertir dígitos decimales enteros y fraccionarios a centavos enteros sin usar parseFloat(amount) * 100.
+- Guardar los centavos como BIGINT de PostgreSQL.
+- Validar cada gasto entre 1 y 99.999.999.999 centavos.
+- Los valores number de la aplicación deben pasar controles de enteros seguros.
+- Convertir explícitamente los bigint de la base; los montos agregados en DTO pueden ser cadenas de enteros decimales.
+- Sumar unidades menores enteras; no usar redondeo de flotantes fraccionarios para reparar errores.
+- Dar formato a ARS para la presentación por separado de la validación y el almacenamiento.
 
-Accepted localized input includes 8500, 8500,50 and 8.500,50.
-A period is a thousands separator, not a decimal separator.
-Reject malformed/ambiguous formats rather than interpreting 1234.56 as a different amount.
-See the feature spec for precise valid/invalid examples.
+Se aceptan entradas locales como 8500, 8500,50 y 8.500,50.
+El punto separa miles, no decimales.
+Se rechazan los formatos mal formados o ambiguos, en vez de interpretar 1234.56 como otro monto.
+La especificación de creación contiene ejemplos precisos de entradas válidas e inválidas.
 
-## Consequences
+## Consecuencias
 
-The model preserves exact amounts and avoids cents overflow in PostgreSQL.
-BigInt cannot be passed directly through JSON; mapping is part of the adapter.
-Multiple currencies and conversions need a future specification.
+El modelo conserva montos exactos y evita desbordamientos de centavos en PostgreSQL.
+BigInt no puede pasar directamente por JSON; su conversión es parte del adaptador.
+Varias monedas y sus conversiones necesitan una especificación futura.

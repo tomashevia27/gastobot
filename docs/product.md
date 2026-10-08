@@ -1,58 +1,58 @@
-# GastoBot — Product
+# GastoBot — Producto
 
-## Problem and user
+## Problema y usuario
 
-Tomás currently records expenses in notes or messages to himself. Entries are quick but hard to organize, correct and summarize. GastoBot keeps that low-friction habit and provides a persistent, queryable record.
+Tomás registra gastos en notas o mensajes para sí mismo. Es rápido, pero luego resulta difícil organizarlos, corregirlos y resumirlos. GastoBot conserva esa facilidad de ingreso y ofrece un registro persistente que se puede consultar.
 
-Initial user: Tomás, using a local application in Argentina.
+Usuario inicial: Tomás, con una aplicación local en Argentina.
 
-The project has two objectives: become useful for daily expense tracking and teach modern web development plus agent engineering through incremental delivery.
+El proyecto tiene dos objetivos: ser útil para el registro diario de gastos y enseñar desarrollo web moderno e ingeniería de agentes mediante entregas incrementales.
 
-## Principles
+## Principios
 
-- Fast entry and clear confirmation.
-- Exact money handling.
-- User control over edits, deletion and uncertain classifications.
-- Business records remain queryable without relying on an LLM conversation.
-- Channels share the same business operations.
-- Unknown information stays unknown; the system asks when required.
-- Documentation evolves alongside the implementation.
+- Ingreso rápido y confirmación clara.
+- Manejo exacto del dinero.
+- Control del usuario sobre edición, eliminación y clasificaciones inciertas.
+- Registros de negocio consultables sin depender de una conversación con un LLM.
+- Los canales comparten las mismas operaciones de negocio.
+- La información desconocida sigue siendo desconocida; el sistema pregunta cuando es necesaria.
+- La documentación evoluciona junto con la implementación.
 
-## v0.1: manual web entry
+## v0.1: ingreso manual desde la web
 
-The milestone includes creating, viewing, editing and deleting manual expenses. These are separate tasks, not one large implementation.
+Este hito comprende crear, ver, editar y eliminar gastos manuales. Son tareas separadas, no una sola implementación grande.
 
-First vertical slice:
-1. Enter amount, category, payment method, occurrence date and optional description/merchant.
-2. Validate and persist the expense.
-3. Show it in a minimal list.
-4. Show the total for the current calendar month.
-5. Keep it after refresh/restart.
+Primer incremento vertical:
+1. Ingresar monto, categoría, medio de pago, fecha de ocurrencia y descripción/comercio opcionales.
+2. Validar y guardar el gasto.
+3. Mostrarlo en una lista mínima.
+4. Mostrar el total del mes calendario actual.
+5. Conservarlo después de actualizar la página o reiniciar la aplicación.
 
-Editing, deletion and month/category filtering with paginated listing are implemented locally. The summary continues to show the current month's total across all categories, regardless of list filters.
-Charts and advanced analytics are later features.
+La edición, la eliminación y los filtros por mes/categoría con lista paginada están implementados localmente. El resumen sigue mostrando el total del mes actual para todas las categorías, independientemente de los filtros de la lista.
+Los gráficos y análisis avanzados corresponden a etapas posteriores.
 
 ## v0.2: ingreso por Telegram
 
 La implementación local admite `/gasto` con monto y medio de pago obligatorios, más categoría, fecha, comercio y descripción opcionales. El bot confirma después de persistir. Solo se aceptan mensajes de texto desde el chat privado del usuario configurado. El comando exacto, errores y garantías ante reintentos están en [la especificación](features/telegram-expense-entry.md). La [guía de configuración](telegram-bot-setup.md) explica cómo crear el bot y poner en marcha el proceso local. La prueba con credenciales reales queda a cargo del usuario.
 
-## Initial rules
+## Reglas iniciales
 
-- Currency: ARS only.
-- Amount: positive, with at most two decimal places.
-- Input locale: Argentine; e.g. 8500, 8500,50 or 8.500,50.
-- Date: valid civil date, defaulting to today in America/Argentina/Buenos_Aires.
-- Category: fixed set initially; defaults to UNCATEGORIZED.
-- Payment method: required, explicitly selected.
-- Merchant and description: optional.
-- Source: MANUAL_WEB, assigned by the backend.
-- No authentication or multiple users in this local milestone.
-- No conversion or combined totals across different currencies.
-- No automated financial advice or LLM dependency in v0.1.
+- Moneda: solo ARS.
+- Monto: positivo, con un máximo de dos cifras decimales.
+- Formato de entrada: argentino; por ejemplo, 8500, 8500,50 u 8.500,50.
+- Fecha: día civil válido; por defecto, el día actual en America/Argentina/Buenos_Aires para la web. En Telegram, la fecha implícita corresponde al día local del mensaje.
+- Categoría: conjunto fijo al inicio; por defecto, UNCATEGORIZED.
+- Medio de pago: obligatorio y elegido explícitamente.
+- Comercio y descripción: opcionales.
+- Origen: MANUAL_WEB para la web y TELEGRAM para el bot; lo asigna el servidor.
+- Sin autenticación ni varios usuarios en estos hitos locales.
+- Sin conversión ni totales combinados entre distintas monedas.
+- Sin asesoramiento financiero automático ni dependencia de un LLM en v0.1 o v0.2.
 
-### Categories
+### Categorías
 
-| Code | UI label |
+| Código | Etiqueta de la interfaz |
 | --- | --- |
 | FOOD | Comida |
 | SUPERMARKET | Supermercado |
@@ -65,9 +65,9 @@ La implementación local admite `/gasto` con monto y medio de pago obligatorios,
 | OTHER | Otros |
 | UNCATEGORIZED | Sin categoría |
 
-### Payment methods
+### Medios de pago
 
-| Code | UI label |
+| Código | Etiqueta de la interfaz |
 | --- | --- |
 | CASH | Efectivo |
 | MERCADO_PAGO | Mercado Pago |
@@ -76,47 +76,47 @@ La implementación local admite `/gasto` con monto y medio de pago obligatorios,
 | TRANSFER | Transferencia |
 | OTHER | Otro |
 
-MERCADO_PAGO is a payment-method label in v0.1; selecting it does not contact Mercado Pago.
+MERCADO_PAGO es una etiqueta de medio de pago; elegirla no contacta a Mercado Pago.
 
-## Domain vocabulary
+## Vocabulario del dominio
 
-- Expense: one recorded outflow, the unit counted in expense totals.
-- Amount: exact integer number of currency minor units.
-- Category: purpose/type of an expense.
-- Payment method: how it was paid.
-- Merchant: who received the payment.
-- Expense source: how the record entered the application.
-- Imported transaction: external evidence, not automatically a second expense.
-- Reconciliation: linking imported evidence to an existing expense or confirming that it is a new one.
-- Agent memory: preferences/rules such as merchant-category mappings.
-- Skill: instructions for performing a task.
-- Tool: an executable, validated application capability.
+- Gasto: una salida de dinero registrada; unidad que se cuenta en los totales.
+- Monto: cantidad exacta y entera de unidades menores de la moneda.
+- Categoría: finalidad o tipo de gasto.
+- Medio de pago: cómo se pagó.
+- Comercio: quién recibió el pago.
+- Origen del gasto: canal por el que ingresó el registro.
+- Transacción importada: evidencia externa que no constituye automáticamente un segundo gasto.
+- Conciliación: vincular evidencia importada con un gasto existente o confirmar que corresponde a uno nuevo.
+- Memoria del agente: preferencias o reglas, como asociaciones entre comercio y categoría.
+- Instrucción reutilizable: indicaciones para realizar una tarea.
+- Herramienta: capacidad ejecutable y validada de la aplicación.
 
-## Milestones and later stages
+## Hitos y etapas posteriores
 
-| Stage | Outcome | Prerequisite |
+| Etapa | Resultado | Requisito previo |
 | --- | --- | --- |
-| v0.1 Web | Manual creation, listing, editing, deletion | Working local project |
-| v0.2 Telegram | Message entry with deterministic commands | Existing expense operations |
-| v0.3 Agent | Natural-language entry via structured tools | Tool validation and initial evals |
-| v0.4 Dashboard | Charts and comparisons | Reliable stored records |
-| v0.5 Memory | Explicit learned preferences | Rules users can inspect/correct |
-| v0.6 Import | Import real digital movements | Sample data and provider investigation |
-| v0.7 Reconciliation | Avoid double counting across sources | Provenance and matching rules |
-| v0.8 Skills/evals | Repeatable agent workflows and regression evaluation | Real examples/failures |
-| v0.9 WhatsApp | Second messaging channel | Official channel setup |
-| v1.0 Assistant | Queries, budgets and alerts | Reliable tools and access controls |
+| v0.1 Web | Creación, lista, edición y eliminación manual | Proyecto local funcional |
+| v0.2 Telegram | Ingreso de mensajes mediante comandos deterministas | Operaciones de gastos existentes |
+| v0.3 Agente | Ingreso en lenguaje natural mediante herramientas estructuradas | Validación de herramientas y evaluaciones iniciales |
+| v0.4 Panel | Gráficos y comparaciones | Registros guardados confiables |
+| v0.5 Memoria | Preferencias aprendidas explícitas | Reglas que el usuario pueda inspeccionar y corregir |
+| v0.6 Importación | Importación de movimientos digitales reales | Datos de ejemplo e investigación del proveedor |
+| v0.7 Conciliación | Evitar el doble cómputo entre orígenes | Procedencia y reglas de asociación |
+| v0.8 Instrucciones/evaluaciones | Flujos repetibles del agente y evaluación de regresiones | Ejemplos y fallas reales |
+| v0.9 WhatsApp | Segundo canal de mensajería | Configuración oficial del canal |
+| v1.0 Asistente | Consultas, presupuestos y alertas | Herramientas confiables y controles de acceso |
 
-Evals start with the first agent feature; v0.8 expands them rather than introducing them for the first time.
+Las evaluaciones comienzan con la primera función del agente; v0.8 las amplía en lugar de introducirlas por primera vez.
 
-Mercado Pago API access to all personal consumer purchases is an unverified assumption. Investigate permissions and actual account data before committing to automated synchronization. CSV/report import remains a possible route.
+El acceso mediante la API de Mercado Pago a todas las compras personales del consumidor es un supuesto sin verificar. Hay que investigar permisos y datos realmente disponibles antes de comprometerse con una sincronización automática. La importación de CSV o reportes sigue siendo una alternativa posible.
 
-## Future agent example
+## Ejemplo para un futuro agente
 
-"ayer 23 lucas cena con los pibes efectivo"
+«ayer 23 lucas cena con los pibes efectivo»
 
-Expected intent: create an ARS 23,000 expense for the previous local date, with an appropriate category, cash payment and a description.
+Intención esperada: crear un gasto de ARS 23.000 para el día local anterior, con una categoría apropiada, pago en efectivo y descripción.
 
-Amount, date and other arguments must be validated by application code before persistence. Missing required information must be clarified. A category can remain UNCATEGORIZED.
+El código de aplicación debe validar monto, fecha y demás argumentos antes de guardar. Hay que aclarar los datos obligatorios que falten. La categoría puede permanecer como UNCATEGORIZED.
 
-Never display an invented confidence percentage as evidence that two records match. Matching scores need a documented method; probabilities need calibration.
+Nunca muestres un porcentaje de confianza inventado como prueba de que dos registros coinciden. Las puntuaciones de asociación necesitan un método documentado; las probabilidades necesitan calibración.

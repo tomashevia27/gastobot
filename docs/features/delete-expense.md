@@ -1,9 +1,9 @@
-# Feature — Delete a manual expense
+# Función — Eliminar un gasto manual
 
-Status: Implemented locally.
+Estado: implementada localmente.
 
-The list offers a delete action with an inline confirmation. Cancelling leaves the record intact. Confirming permanently removes the expense in this local single-user version.
+La lista ofrece una acción de eliminación con confirmación en la misma vista. Cancelar deja el registro intacto. Confirmar elimina el gasto de forma permanente en esta versión local para una sola persona.
 
-`DELETE /api/expenses/{id}` returns 204 after deletion, 404 for an absent or malformed id, and generic 500 feedback for unexpected failures. The interface refreshes the list and current-month total after success; failures keep the expense visible and show an error.
+`DELETE /api/expenses/{id}` devuelve 204 después de eliminar, 404 ante un id inexistente o mal formado y un mensaje genérico con 500 ante fallas inesperadas. La interfaz vuelve a consultar la lista y el total del mes actual tras el éxito; ante una falla mantiene visible el gasto y muestra un error.
 
-Verification: integration tests check existing and missing ids plus the persisted total; a browser test checks cancel, confirm and reload. Tests use only the dedicated test database.
+Verificación: las pruebas de integración comprueban ids existentes e inexistentes y el total persistido; una prueba de navegador verifica cancelar, confirmar y recargar. Las pruebas usan exclusivamente la base destinada a ellas.

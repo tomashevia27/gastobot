@@ -1,59 +1,59 @@
-# Feature — Initialize the local project
+# Función — Inicializar el proyecto local
 
-## Goal
+## Objetivo
 
-Turn the supplied documentation into a runnable, verifiable development foundation without implementing expense behaviour.
+Convertir la documentación entregada en una base de desarrollo ejecutable y verificable sin implementar todavía el comportamiento de gastos.
 
-## Scope
+## Alcance
 
-- Inspect existing files, Git state and installed Node.js/npm/Docker.
-- Initialize Git with main only if this directory is not already in a repository.
-- If it belongs to an ancestor repository, report that situation instead of silently creating a nested repository.
-- Create Next.js App Router with src/, strict TypeScript and npm.
-- Preserve supplied documentation. A scaffold may need to be generated in a temporary directory because the project root is non-empty.
-- Add a minimal Spanish GastoBot page, with no simulated financial data.
-- Configure ESLint, typecheck, build and Vitest single-run commands.
-- Add PostgreSQL Compose config with local-only binding and a persistent named volume.
-- Set up Prisma configuration compatible with the selected version; do not invent expense tables yet.
-- Add a sanitized .env.example and ignore real env files/build/dependency output.
-- Record an exact supported Node.js version and dependency lockfile.
-- Configure GitHub Actions for push/PR to main, using compatible runtime/tool versions and npm ci.
-- Update README with commands, setup and checks actually performed.
-- Finish by planning create-expense, without implementing it.
+- Inspeccionar los archivos existentes, el estado de Git y las versiones instaladas de Node.js, npm y Docker.
+- Inicializar Git con main solo si este directorio no pertenece ya a un repositorio.
+- Si pertenece a un repositorio antecesor, informar la situación en lugar de crear uno anidado en silencio.
+- Crear una aplicación Next.js App Router con src/, TypeScript estricto y npm.
+- Conservar la documentación entregada. Como la raíz del proyecto no está vacía, podría ser necesario generar la estructura inicial en un directorio temporal.
+- Agregar una página mínima de GastoBot en español, sin datos financieros simulados.
+- Configurar ESLint y comandos de verificación de tipos, compilación y una sola ejecución de Vitest.
+- Agregar configuración de PostgreSQL con Compose, puerto limitado a la interfaz local y volumen persistente con nombre.
+- Configurar Prisma de manera compatible con la versión elegida; todavía no inventar tablas de gastos.
+- Agregar un .env.example sin secretos e ignorar archivos reales de entorno, compilación y dependencias.
+- Registrar una versión exacta y compatible de Node.js y conservar el archivo de bloqueo de dependencias.
+- Configurar GitHub Actions para push y solicitudes de cambio a main, con versiones compatibles y npm ci.
+- Actualizar README con comandos, configuración y verificaciones realmente realizadas.
+- Terminar con un plan para create-expense, sin implementarlo.
 
-## Non-goals
+## Fuera de alcance
 
-No expense CRUD, seed expenses, agent, Telegram, Mercado Pago, OAuth, auth, public deployment, remote repository creation or push.
+No se incluyen operaciones de creación, lectura, edición o eliminación de gastos, datos de ejemplo, agente, Telegram, Mercado Pago, OAuth, autenticación, despliegue público, creación de repositorio remoto ni push.
 
-## Acceptance criteria
+## Criterios de aceptación
 
-1. Existing documentation survives intact except necessary, explained consistency/setup updates.
-2. The development server renders a minimal page at localhost.
-3. Lint, typecheck and build execute successfully, or genuine blockers are reported clearly.
-4. A Vitest single-run script exists. If there are no tests, report that explicitly; do not add a tautological test or permanently enable passWithNoTests to claim success.
-5. CI runs available lint/typecheck/build checks. During bootstrap it can explicitly omit the empty test suite; the first feature adds mandatory tests and removes that omission.
-6. PostgreSQL config uses a named volume and loopback binding, and README explains startup/shutdown without deleting the volume.
-7. Verify PostgreSQL startup/readiness if Docker is available. If unavailable, distinguish supplied config from verified execution.
-8. No business migration is created. Prisma configuration/validation is checked with the installed version where supported.
-9. A supported runtime version and package-lock.json are retained.
-10. No token or real personal financial record is included.
-11. The final report lists changes, exact checks/results, versions, limitations and the plan for the first feature.
-12. No feature implementation, remote operation or commit happens outside the prompt's authorization.
+1. La documentación existente se conserva intacta salvo actualizaciones necesarias y explicadas de coherencia o configuración.
+2. El servidor de desarrollo muestra una página mínima en localhost.
+3. Lint, verificación de tipos y compilación se ejecutan correctamente, o se informan con claridad los bloqueos reales.
+4. Existe un comando para ejecutar Vitest una sola vez. Si todavía no hay pruebas, se declara explícitamente; no se agrega una prueba tautológica ni se habilita permanentemente passWithNoTests para aparentar éxito.
+5. La integración continua ejecuta los controles disponibles de lint, tipos y compilación. Durante la inicialización puede omitir explícitamente la suite vacía; la primera función agrega pruebas obligatorias y elimina esa omisión.
+6. PostgreSQL usa un volumen con nombre y un puerto limitado a la interfaz local; README explica cómo iniciarlo y detenerlo sin borrar el volumen.
+7. Se comprueba el inicio y disponibilidad de PostgreSQL si Docker está disponible. En caso contrario, se distingue la configuración entregada de una ejecución verificada.
+8. No se crea una migración de negocio. Se comprueban la configuración y validación de Prisma con la versión instalada cuando sea posible.
+9. Se conservan una versión compatible del entorno de ejecución y package-lock.json.
+10. No se incluyen tokens ni datos financieros personales reales.
+11. El informe final enumera cambios, controles y resultados exactos, versiones, limitaciones y plan para la primera función.
+12. No se implementan funciones ni se realizan operaciones remotas o commits fuera de lo autorizado por la instrucción.
 
-## Command contract
+## Contrato de comandos
 
-Configure:
+Configurar:
 - npm run dev
 - npm run lint
 - npm run typecheck
 - npm test
 - npm run build
 
-Add database/tool commands only if they are valid for the selected versions and needed now.
-Integration and e2e scripts are created with the first feature, not fake successful placeholders.
+Agregar comandos de base y herramientas solo si son válidos para las versiones elegidas y hacen falta en esta etapa.
+Los comandos de integración y extremo a extremo se crean con la primera función, no como marcadores vacíos que aparenten éxito.
 
-## Verification notes
+## Notas de verificación
 
-Build/render must not depend on fetching external fonts or a database connection at build time.
-Development database setup is distinct from test setup.
-An unavailable dependency/tool is a blocker to report, not evidence that a check passed.
+La compilación y la visualización no deben depender de descargar fuentes externas ni de una conexión a la base durante la compilación.
+La preparación de la base de desarrollo es distinta de la preparación de pruebas.
+La ausencia de una dependencia o herramienta es un bloqueo que debe informarse, no evidencia de que un control pasó.

@@ -1,77 +1,77 @@
-# GastoBot — Agent instructions
+# GastoBot — Instrucciones para agentes
 
-## Context and scope
+## Contexto y alcance
 
-GastoBot is a personal expense tracker and a learning project.
-Current state: local v0.2 supports manual expense management and deterministic Telegram expense entry.
-Read the active feature specification before changing code.
+GastoBot es un registro de gastos personales y un proyecto de aprendizaje.
+Estado actual: la v0.2 local permite administrar gastos manuales e ingresar gastos por Telegram mediante comandos deterministas.
+Leé la especificación activa de la función antes de modificar el código.
 
-Documentation:
-- docs/product.md: behaviour and roadmap.
-- docs/architecture.md: boundaries and target structure.
-- docs/development-methodology.md: workflow and verification.
-- docs/decisions/: decisions and consequences.
-- docs/features/: acceptance criteria.
+Documentación:
+- docs/product.md: comportamiento y hoja de ruta.
+- docs/architecture.md: límites y estructura objetivo.
+- docs/development-methodology.md: método de trabajo y verificación.
+- docs/decisions/: decisiones y consecuencias.
+- docs/features/: criterios de aceptación.
 
-## Working agreement
+## Acuerdo de trabajo
 
-- Explain plans, changes and data flow to Tomás in Spanish; code identifiers are English.
-- Inspect the current repository and preserve existing work before editing.
-- For non-trivial tasks, outline a short plan with files, flow and verification.
-- If asked for a plan only, stop after planning.
-- An explicit implementation request authorizes that task. Stay within its scope.
-- Prefer small vertical slices; explain material assumptions and new architectural decisions.
-- Do not implement roadmap features opportunistically.
-- During authorized implementation work, commit each small, coherent increment after its relevant checks pass. Do not push or deploy unless the active request authorizes it.
+- Explicá planes, cambios y flujo de datos a Tomás en español; los identificadores de código van en inglés.
+- Inspeccioná el repositorio actual y conservá el trabajo existente antes de editar.
+- Para tareas no triviales, presentá un plan breve con archivos, flujo y verificación.
+- Si se pide solo un plan, detenete después de planificar.
+- Una solicitud explícita de implementación autoriza esa tarea. Respetá su alcance.
+- Preferí incrementos verticales pequeños; explicá los supuestos relevantes y las nuevas decisiones de arquitectura.
+- No implementes funciones de la hoja de ruta de manera oportunista.
+- Durante una implementación autorizada, registrá cada incremento pequeño y coherente en un commit después de sus verificaciones pertinentes. No hagas push ni despliegues salvo que la solicitud activa lo autorice.
 
-## Increment and commit workflow
+## Flujo de incrementos y commits
 
-- Divide feature work into small, coherent increments with a specific behaviour or boundary.
-- Include implementation, directly related tests and necessary setup or documentation in the same increment. Verify documentation-only changes for consistency; do not add artificial tests.
-- Order increments so each proposed commit can stand on its own and pass its relevant checks. Keep coupled code and tests together when separating them would leave a broken intermediate state.
-- Review the staged diff and record the checks run for each increment. Do not split work mechanically by file type or directory.
-- Tomás authorizes incremental commits during implementation work. A plan-only or review-only request does not authorize commits. Do not rewrite previous commits without an explicit request.
+- Dividí el trabajo de cada función en incrementos pequeños y coherentes, con un comportamiento o límite concreto.
+- Incluí implementación, pruebas directamente relacionadas y configuración o documentación necesaria en el mismo incremento. Verificá la coherencia de los cambios solo documentales; no agregues pruebas artificiales.
+- Ordená los incrementos para que cada commit propuesto funcione por sí solo y pase sus verificaciones pertinentes. Mantené juntos el código y las pruebas acopladas si separarlos dejaría un estado intermedio roto.
+- Revisá el diff preparado y registrá las verificaciones ejecutadas para cada incremento. No dividas el trabajo mecánicamente por tipo de archivo o directorio.
+- Tomás autoriza commits incrementales durante el trabajo de implementación. Una solicitud solo de planificación o revisión no autoriza commits. No reescribas commits anteriores sin una solicitud explícita.
 
-## Stack and boundaries
+## Tecnologías y límites
 
-Next.js App Router, React, strict TypeScript, npm, PostgreSQL, Prisma, Zod,
-CSS Modules/CSS and Vitest; Playwright when an end-to-end feature exists.
-Check compatible stable versions during bootstrap and retain package-lock.json.
-Use a modular monolith organized by feature. Introduce ports when they isolate a real boundary.
-Domain rules must not import React, Next.js, Prisma or external-provider SDKs.
-Keep transport handlers thin. Application code owns business operations.
-Keep database code and secrets server-side; never put them in client bundles.
-v0.2 is single-user local use; public/multi-user use requires authentication and ownership checks first.
+Next.js App Router, React, TypeScript estricto, npm, PostgreSQL, Prisma, Zod,
+CSS Modules/CSS y Vitest; Playwright cuando exista un recorrido completo de usuario.
+Comprobá versiones estables compatibles durante la inicialización y conservá package-lock.json.
+Usá un monolito modular organizado por función. Introducí puertos cuando aíslen un límite real.
+Las reglas de dominio no deben importar React, Next.js, Prisma ni SDK de proveedores externos.
+Mantené delgados los manejadores de transporte. El código de aplicación dirige las operaciones de negocio.
+Mantené el acceso a la base y los secretos del lado del servidor; nunca los incluyas en código enviado al cliente.
+La v0.2 es de uso local para una sola persona; antes de un uso público o con varias personas se requieren autenticación y controles de propiedad.
 
-## Data rules
+## Reglas de datos
 
-- Current local milestones use ARS only. Store money as integer cents, never fractional floating-point amounts.
-- Parse decimal input from strings with explicit Argentine formatting; validate safe integer ranges.
-- PostgreSQL amount_cents is BIGINT. Convert Prisma bigint explicitly at DTO boundaries.
-- Occurrence date is a civil YYYY-MM-DD date; timestamps are UTC instants.
-- Derive "today" in America/Argentina/Buenos_Aires, not from the server's UTC date.
-- Validate on the server even if the UI validates first.
-- Do not invent missing payment methods or silently reclassify unknown expenses.
-- Preserve the difference between business data, agent memory and skills.
-- Future agent tools call validated application operations; the model does not execute arbitrary SQL.
+- Las versiones locales actuales solo usan ARS. Guardá el dinero como centavos enteros, nunca como montos decimales de punto flotante.
+- Interpretá los montos decimales desde cadenas con formato argentino explícito; validá los límites de enteros seguros.
+- amount_cents es BIGINT en PostgreSQL. Convertí explícitamente los bigint de Prisma en los límites de los DTO.
+- La fecha de ocurrencia es una fecha civil AAAA-MM-DD; las marcas de tiempo son instantes UTC.
+- Calculá «hoy» en America/Argentina/Buenos_Aires, no a partir de la fecha UTC del servidor.
+- Validá en el servidor aunque la interfaz ya haya validado.
+- No inventes medios de pago faltantes ni reclasifiques gastos desconocidos en silencio.
+- Conservá la diferencia entre datos de negocio, memoria del agente e instrucciones reutilizables.
+- Las futuras herramientas del agente llamarán operaciones de aplicación validadas; el modelo no ejecutará SQL arbitrario.
 
-## Verification and completion
+## Verificación y finalización
 
-Configured commands:
+Comandos configurados:
 - npm run lint
 - npm run typecheck
-- npm test (single run of domain tests)
+- npm test (una ejecución de las pruebas de dominio)
 - npm run build
 - npm run db:validate
-- npm run test:integration (dedicated gastobot_test database)
-- npm run test:e2e (Playwright against gastobot_test)
+- npm run test:integration (base exclusiva gastobot_test)
+- npm run test:e2e (Playwright contra gastobot_test)
 
-Use TDD for meaningful business rules and integration tests for persistence.
-Test user behaviour; avoid tests that mirror code or verify trivial styling.
-For each task report changed behaviour, checks actually run, results and blockers.
-Do not present unavailable checks or an empty test suite as passing coverage.
-Do not hide failed tests, disable checks to force success, or touch real user data in tests.
-Update documentation when behaviour/setup changes. Definition of done is in the methodology.
+Usá TDD para reglas de negocio significativas y pruebas de integración para persistencia.
+Probá el comportamiento de usuario; evitá pruebas que reproduzcan el código o verifiquen detalles triviales de estilo.
+En cada tarea informá el comportamiento cambiado, las verificaciones realmente ejecutadas, sus resultados y los bloqueos.
+No presentes verificaciones indisponibles ni una suite vacía como cobertura aprobada.
+No ocultes pruebas fallidas, desactives verificaciones para forzar un éxito ni toques datos reales del usuario en las pruebas.
+Actualizá la documentación cuando cambie el comportamiento o la configuración. La definición de terminado está en la metodología.
 
-Do not add microservices, Redis, vector storage, event buses, CQRS, event sourcing
-or multiple agents without a concrete requirement. No LLM/Telegram/Mercado Pago dependency is needed for the manual expense flow.
+No agregues microservicios, Redis, almacenamiento vectorial, buses de eventos, CQRS, event sourcing
+ni varios agentes sin un requisito concreto. El flujo de gastos manuales no necesita dependencias de LLM, Telegram ni Mercado Pago.
