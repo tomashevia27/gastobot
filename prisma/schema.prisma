@@ -35,6 +35,7 @@ enum Currency {
 
 enum ExpenseSource {
   MANUAL_WEB
+  TELEGRAM
 }
 
 model Expense {
@@ -49,7 +50,19 @@ model Expense {
   source        ExpenseSource   @default(MANUAL_WEB)
   createdAt     DateTime        @default(now()) @db.Timestamptz(3) @map("created_at")
   updatedAt     DateTime        @updatedAt @db.Timestamptz(3) @map("updated_at")
+  telegramUpdates TelegramProcessedUpdate[]
 
   @@index([occurredOn(sort: Desc), createdAt(sort: Desc), id], map: "expenses_list_order_idx")
   @@map("expenses")
+}
+
+model TelegramProcessedUpdate {
+  botId     BigInt   @map("bot_id")
+  updateId  BigInt   @map("update_id")
+  expenseId String?  @db.Uuid @map("expense_id")
+  expense   Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+
+  @@id([botId, updateId])
+  @@map("telegram_processed_updates")
 }

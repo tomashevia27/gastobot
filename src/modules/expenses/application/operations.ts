@@ -1,7 +1,7 @@
 import { currentMonthBounds } from "../domain/dates";
 import { validateExpenseInput, type FieldErrors } from "../domain/validation";
 import { DEFAULT_LIST_QUERY, EXPENSE_PAGE_SIZE, type ExpenseListQuery } from "../domain/list-query";
-import type { ExpenseDto, ExpenseStore, ExpensesSnapshot } from "./types";
+import type { ExpenseDto, ExpenseStore, ExpensesSnapshot, TelegramUpdateKey } from "./types";
 
 export class ExpenseValidationError extends Error {
   constructor(public readonly fieldErrors: FieldErrors) {
@@ -20,11 +20,21 @@ function validExpenseId(id: string): boolean {
 }
 
 export async function createExpense(input: unknown, store: ExpenseStore): Promise<ExpenseDto> {
+  return store.insert(validateForCreation(input), "MANUAL_WEB");
+}
+
+function validateForCreation(input: unknown) {
   const validated = validateExpenseInput(input);
-  if ("errors" in validated) {
-    throw new ExpenseValidationError(validated.errors);
-  }
-  return store.insert(validated);
+  if ("errors" in validated) throw new ExpenseValidationError(validated.errors);
+  return validated;
+}
+
+export async function createTelegramExpense(
+  input: unknown,
+  key: TelegramUpdateKey,
+  store: ExpenseStore,
+): Promise<{ expense: ExpenseDto | null; created: boolean }> {
+  return store.insertFromTelegram(validateForCreation(input), key);
 }
 
 export async function updateExpense(id: string, input: unknown, store: ExpenseStore): Promise<ExpenseDto> {
