@@ -49,6 +49,19 @@ export const prismaExpenseStore: ExpenseStore = {
     return toDto(expense);
   },
 
+  async update(id: string, input: ValidatedExpenseInput) {
+    const result = await prisma.expense.updateMany({
+      where: { id },
+      data: {
+        amountCents: BigInt(input.amountCents), occurredOn: toDatabaseDate(input.occurredOn),
+        category: input.category, paymentMethod: input.paymentMethod,
+        merchant: input.merchant, description: input.description,
+      },
+    });
+    if (result.count === 0) return null;
+    return toDto(await prisma.expense.findUniqueOrThrow({ where: { id } }));
+  },
+
   async findAll() {
     const expenses = await prisma.expense.findMany({
       orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }, { id: "asc" }],

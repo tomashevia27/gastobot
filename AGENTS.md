@@ -3,7 +3,7 @@
 ## Context and scope
 
 GastoBot is a personal expense tracker and a learning project.
-Current state: manual create-expense vertical slice implemented locally.
+Current state: manual creation and editing implemented locally.
 Read the active feature specification before changing code.
 
 Documentation:
@@ -22,7 +22,7 @@ Documentation:
 - An explicit implementation request authorizes that task. Stay within its scope.
 - Prefer small vertical slices; explain material assumptions and new architectural decisions.
 - Do not implement roadmap features opportunistically.
-- Do not commit, push or deploy unless the active request authorizes it.
+- During authorized implementation work, commit each small, coherent increment after its relevant checks pass. Do not push or deploy unless the active request authorizes it.
 
 ## Increment and commit workflow
 
@@ -30,7 +30,7 @@ Documentation:
 - Include implementation, directly related tests and necessary setup or documentation in the same increment. Verify documentation-only changes for consistency; do not add artificial tests.
 - Order increments so each proposed commit can stand on its own and pass its relevant checks. Keep coupled code and tests together when separating them would leave a broken intermediate state.
 - Review the staged diff and record the checks run for each increment. Do not split work mechanically by file type or directory.
-- Commit only with explicit authorization for the commit or commits. Authorization to implement or plan does not authorize a commit. Do not rewrite previous commits without an explicit request.
+- Tomás authorizes incremental commits during implementation work. A plan-only or review-only request does not authorize commits. Do not rewrite previous commits without an explicit request.
 
 ## Stack and boundaries
 

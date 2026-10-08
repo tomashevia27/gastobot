@@ -23,6 +23,7 @@ export type ExpensesSnapshot = {
 
 export interface ExpenseStore {
   insert(input: ValidatedExpenseInput): Promise<ExpenseDto>;
+  update(id: string, input: ValidatedExpenseInput): Promise<ExpenseDto | null>;
   findAll(): Promise<ExpenseDto[]>;
   sumCents(fromInclusive: string, toExclusive: string): Promise<string>;
 }

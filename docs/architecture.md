@@ -2,7 +2,7 @@
 
 ## Status
 
-The runtime foundation and the first manual create-expense flow are implemented. Editing and deletion are later slices.
+The runtime foundation supports manual creation and editing. Deletion and filtering are later slices.
 
 ## Initial system
 

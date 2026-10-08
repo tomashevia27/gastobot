@@ -21,3 +21,8 @@ export function formatArsCents(value: number | string): string {
   const fraction = (cents % 100n).toString().padStart(2, "0");
   return `$ ${new Intl.NumberFormat("es-AR").format(whole)},${fraction}`;
 }
+
+export function formatAmountInput(value: number): string {
+  const cents = BigInt(value);
+  return `${cents / 100n},${(cents % 100n).toString().padStart(2, "0")}`;
+}

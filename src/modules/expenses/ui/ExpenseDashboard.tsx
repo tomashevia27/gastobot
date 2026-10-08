@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { ExpensesSnapshot } from "../application/types";
+import type { ExpenseDto, ExpensesSnapshot } from "../application/types";
 import { CATEGORY_OPTIONS, PAYMENT_METHOD_OPTIONS, type Category, type PaymentMethod } from "../domain/constants";
 import { todayInBuenosAires } from "../domain/dates";
-import { formatArsCents } from "../domain/money";
+import { formatAmountInput, formatArsCents } from "../domain/money";
 import styles from "./ExpenseDashboard.module.css";
 
 type FormValues = {
@@ -50,6 +50,7 @@ function paymentLabel(code: string): string {
 export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: ExpensesSnapshot }) {
   const [form, setForm] = useState<FormValues>(emptyForm);
   const [snapshot, setSnapshot] = useState(initialSnapshot);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
@@ -72,6 +73,25 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
     }
   }
 
+  function beginEdit(expense: ExpenseDto) {
+    setEditingId(expense.id);
+    setForm({
+      amount: formatAmountInput(expense.amountCents), occurredOn: expense.occurredOn,
+      category: expense.category, paymentMethod: expense.paymentMethod,
+      merchant: expense.merchant ?? "", description: expense.description ?? "",
+    });
+    setErrors({});
+    setMessage("");
+    document.getElementById("amount")?.focus();
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyForm());
+    setErrors({});
+    setMessage("");
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
@@ -79,9 +99,10 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
     setErrors({});
     setMessage("");
     setRefreshError("");
+    const wasEditing = editingId !== null;
     try {
-      const response = await fetch("/api/expenses", {
-        method: "POST",
+      const response = await fetch(wasEditing ? `/api/expenses/${editingId}` : "/api/expenses", {
+        method: wasEditing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
@@ -91,14 +112,15 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
         return;
       }
       if (!response.ok) {
-        setErrors({ _form: body.error ?? "No se pudo guardar el gasto. Intentá de nuevo." });
+        setErrors({ _form: body.error ?? (wasEditing ? "No se pudo actualizar el gasto." : "No se pudo guardar el gasto.") });
         return;
       }
-      setMessage("Gasto guardado.");
+      setMessage(wasEditing ? "Gasto actualizado." : "Gasto guardado.");
+      setEditingId(null);
       setForm(emptyForm());
       await refreshExpenses();
     } catch {
-      setErrors({ _form: "No se pudo guardar el gasto. Intentá de nuevo." });
+      setErrors({ _form: wasEditing ? "No se pudo actualizar el gasto. Intentá de nuevo." : "No se pudo guardar el gasto. Intentá de nuevo." });
     } finally {
       setPending(false);
     }
@@ -114,7 +136,7 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
 
       <div className={styles.grid}>
         <section className={styles.panel} aria-labelledby="new-expense-title">
-          <h2 id="new-expense-title">Nuevo gasto</h2>
+          <h2 id="new-expense-title">{editingId ? "Editar gasto" : "Nuevo gasto"}</h2>
           <form onSubmit={submit} noValidate>
             <div className={styles.field}>
               <label htmlFor="amount">Monto en ARS</label>
@@ -174,7 +196,8 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
 
             {errors._form && <p className={styles.error} role="alert">{errors._form}</p>}
             {message && <p className={styles.success} role="status">{message}</p>}
-            <button type="submit" disabled={pending}>{pending ? "Guardando…" : "Guardar gasto"}</button>
+            <button type="submit" disabled={pending}>{pending ? "Guardando…" : editingId ? "Guardar cambios" : "Guardar gasto"}</button>
+            {editingId && <button type="button" className={styles.secondaryButton} disabled={pending} onClick={cancelEdit}>Cancelar edición</button>}
           </form>
         </section>
 
@@ -200,7 +223,12 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
                       <p>{categoryLabel(expense.category)} · {paymentLabel(expense.paymentMethod)} · {dateLabel(expense.occurredOn)}</p>
                       {expense.description && <p>{expense.description}</p>}
                     </div>
-                    <span className={styles.amount}>{formatArsCents(expense.amountCents)}</span>
+                    <div className={styles.itemSide}>
+                      <span className={styles.amount}>{formatArsCents(expense.amountCents)}</span>
+                      <div className={styles.actions}>
+                        <button type="button" onClick={() => beginEdit(expense)} disabled={pending}>Editar</button>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>

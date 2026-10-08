@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { currentMonthBounds, isValidCivilDate, todayInBuenosAires } from "./dates";
-import { parseAmountCents } from "./money";
+import { formatAmountInput, parseAmountCents } from "./money";
 import { validateExpenseInput } from "./validation";
 
 describe("ARS amount parsing", () => {
+  it("formats stored cents as editable Argentine input without losing precision", () => {
+    expect(formatAmountInput(99_999_999_999)).toBe("999999999,99");
+    expect(parseAmountCents(formatAmountInput(99_999_999_999))).toBe(99_999_999_999);
+  });
   it.each([
     ["8500", 850000],
     ["8.500", 850000],

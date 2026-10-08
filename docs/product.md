@@ -29,7 +29,7 @@ First vertical slice:
 4. Show the total for the current calendar month.
 5. Keep it after refresh/restart.
 
-Next slices: editing, deletion and improved listing/filtering.
+Editing is implemented locally. Next slices: deletion and improved listing/filtering.
 Charts and advanced analytics are later features.
 
 ## Initial rules

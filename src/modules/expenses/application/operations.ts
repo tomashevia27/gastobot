@@ -8,12 +8,31 @@ export class ExpenseValidationError extends Error {
   }
 }
 
+export class ExpenseNotFoundError extends Error {
+  constructor() {
+    super("Expense not found");
+  }
+}
+
+function validExpenseId(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+}
+
 export async function createExpense(input: unknown, store: ExpenseStore): Promise<ExpenseDto> {
   const validated = validateExpenseInput(input);
   if ("errors" in validated) {
     throw new ExpenseValidationError(validated.errors);
   }
   return store.insert(validated);
+}
+
+export async function updateExpense(id: string, input: unknown, store: ExpenseStore): Promise<ExpenseDto> {
+  if (!validExpenseId(id)) throw new ExpenseNotFoundError();
+  const validated = validateExpenseInput(input);
+  if ("errors" in validated) throw new ExpenseValidationError(validated.errors);
+  const updated = await store.update(id, validated);
+  if (!updated) throw new ExpenseNotFoundError();
+  return updated;
 }
 
 export async function getExpensesSnapshot(

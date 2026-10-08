@@ -43,6 +43,8 @@
 }
 .panel button:hover { background: #10552f; }
 .panel button:disabled { cursor: wait; opacity: 0.7; }
+.panel button.secondaryButton { margin-top: 0.7rem; background: #e8f0e9; color: #254735; }
+.panel button.secondaryButton:hover { background: #d8e6db; }
 .overview { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
 .totalCard { background: #173e2a; color: #fff; border-radius: 20px; padding: 1.7rem; }
 .totalCard p { color: #c5ddcc; margin: 0 0 0.65rem; }
@@ -55,9 +57,15 @@
 .item strong { display: block; }
 .item p { color: #5a6c60; font-size: 0.88rem; line-height: 1.4; margin: 0.25rem 0 0; }
 .amount { font-weight: 700; white-space: nowrap; }
+.itemSide { display: flex; flex-direction: column; align-items: flex-end; gap: 0.55rem; }
+.actions { display: flex; gap: 0.4rem; }
+.panel .actions button { width: auto; padding: 0.4rem 0.6rem; background: #e8f0e9; color: #254735; font-size: 0.85rem; }
+.panel .actions button:hover { background: #d8e6db; }
 
 @media (max-width: 760px) {
   .page { padding: 1.5rem 1rem 3rem; }
   .grid { grid-template-columns: 1fr; }
   .panel, .totalCard { padding: 1.25rem; }
+  .item { flex-direction: column; }
+  .itemSide { align-items: flex-start; }
 }
