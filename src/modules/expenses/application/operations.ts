@@ -1,5 +1,6 @@
 import { currentMonthBounds } from "../domain/dates";
 import { validateExpenseInput, type FieldErrors } from "../domain/validation";
+import { DEFAULT_LIST_QUERY, EXPENSE_PAGE_SIZE, type ExpenseListQuery } from "../domain/list-query";
 import type { ExpenseDto, ExpenseStore, ExpensesSnapshot } from "./types";
 
 export class ExpenseValidationError extends Error {
@@ -42,11 +43,16 @@ export async function deleteExpense(id: string, store: ExpenseStore): Promise<vo
 export async function getExpensesSnapshot(
   store: ExpenseStore,
   now: Date = new Date(),
+  query: ExpenseListQuery = DEFAULT_LIST_QUERY,
 ): Promise<ExpensesSnapshot> {
   const bounds = currentMonthBounds(now);
-  const [expenses, currentMonthTotalCents] = await Promise.all([
-    store.findAll(),
+  const [{ expenses, totalCount }, currentMonthTotalCents] = await Promise.all([
+    store.findPage(query),
     store.sumCents(bounds.start, bounds.endExclusive),
   ]);
-  return { expenses, month: bounds.month, currentMonthTotalCents };
+  return {
+    expenses, month: bounds.month, currentMonthTotalCents,
+    page: query.page, totalCount,
+    hasMore: query.page * EXPENSE_PAGE_SIZE < totalCount,
+  };
 }

@@ -2,6 +2,8 @@ import type { Expense } from "@/generated/prisma/client";
 import { prisma } from "@/server/prisma";
 import type { ExpenseStore, ExpenseDto } from "../application/types";
 import type { ValidatedExpenseInput } from "../domain/validation";
+import { EXPENSE_PAGE_SIZE, type ExpenseListQuery } from "../domain/list-query";
+import { isValidCivilDate } from "../domain/dates";
 
 function toDatabaseDate(civilDate: string): Date {
   // Prisma maps a JS Date to PostgreSQL DATE; encode the civil value at UTC midnight.
@@ -67,11 +69,27 @@ export const prismaExpenseStore: ExpenseStore = {
     return result.count > 0;
   },
 
-  async findAll() {
-    const expenses = await prisma.expense.findMany({
-      orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }, { id: "asc" }],
-    });
-    return expenses.map(toDto);
+  async findPage(query: ExpenseListQuery) {
+    let occurredOn;
+    if (query.month) {
+      let lastDay = 31;
+      while (!isValidCivilDate(`${query.month}-${String(lastDay).padStart(2, "0")}`)) lastDay -= 1;
+      occurredOn = {
+        gte: toDatabaseDate(`${query.month}-01`),
+        lte: toDatabaseDate(`${query.month}-${String(lastDay).padStart(2, "0")}`),
+      };
+    }
+    const where = { ...(occurredOn ? { occurredOn } : {}), ...(query.category ? { category: query.category } : {}) };
+    const [expenses, totalCount] = await Promise.all([
+      prisma.expense.findMany({
+        where,
+        skip: (query.page - 1) * EXPENSE_PAGE_SIZE,
+        take: EXPENSE_PAGE_SIZE,
+        orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }, { id: "asc" }],
+      }),
+      prisma.expense.count({ where }),
+    ]);
+    return { expenses: expenses.map(toDto), totalCount };
   },
 
   async sumCents(fromInclusive: string, toExclusive: string) {

@@ -92,3 +92,25 @@ test("cancels and then confirms permanent deletion", async ({ page, request }) =
   await page.reload();
   await expect(page.getByText(merchant)).toHaveCount(0);
 });
+
+test("filters a month and category and navigates to the second page", async ({ page, request }) => {
+  const prefix = `Filtro ${randomUUID()}`;
+  for (let index = 1; index <= 22; index += 1) {
+    const response = await request.post("/api/expenses", { data: {
+      amount: "1,00", occurredOn: `2034-07-${String(index).padStart(2, "0")}`,
+      category: "FOOD", paymentMethod: "CASH", merchant: `${prefix} ${index}`,
+    } });
+    expect(response.status()).toBe(201);
+    createdIds.push((await response.json()).id);
+  }
+
+  await page.goto("/");
+  await page.getByLabel("Filtrar por mes").fill("2034-07");
+  await page.getByLabel("Filtrar por categoría").selectOption("FOOD");
+  await expect(page.getByText("Página 1")).toBeVisible();
+  await expect(page.getByRole("listitem")).toHaveCount(20);
+  await page.getByRole("button", { name: "Siguiente" }).click();
+  await expect(page.getByText("Página 2")).toBeVisible();
+  await expect(page.getByRole("listitem")).toHaveCount(2);
+  await expect(page.getByText(`${prefix} 1`, { exact: true })).toBeVisible();
+});

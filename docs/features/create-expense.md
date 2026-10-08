@@ -3,6 +3,8 @@
 Status: Implemented locally; checks and setup are recorded in README.md.
 Prerequisite: initialize-project completed.
 
+The later filtered listing shows 20 records per page. A saved expense with an older date may appear on another page; month/category filters help locate it.
+
 ## User story
 
 As Tomás, I want to record an expense from the web, so that I can keep a durable record and see my month's total.

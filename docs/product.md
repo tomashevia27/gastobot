@@ -29,7 +29,7 @@ First vertical slice:
 4. Show the total for the current calendar month.
 5. Keep it after refresh/restart.
 
-Editing and deletion are implemented locally. Next slice: improved listing/filtering.
+Editing, deletion and month/category filtering with paginated listing are implemented locally. The summary continues to show the current month's total across all categories, regardless of list filters.
 Charts and advanced analytics are later features.
 
 ## Initial rules

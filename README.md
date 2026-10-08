@@ -1,6 +1,6 @@
 # GastoBot
 
-Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Ya se pueden crear, editar y eliminar gastos manuales en ARS, verlos en una lista y consultar el total del mes actual. Los contratos están en [create-expense](docs/features/create-expense.md), [edit-expense](docs/features/edit-expense.md) y [delete-expense](docs/features/delete-expense.md).
+Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Ya se pueden crear, editar, eliminar y filtrar gastos manuales en ARS. La lista tiene páginas de 20 registros y el resumen muestra el total del mes actual.
 
 ## Requisitos y versiones
 
@@ -22,7 +22,7 @@ npm run local
 
 `npm run local` instala dependencias si faltan o no coinciden, crea `.env` desde el ejemplo solo si no existe, levanta PostgreSQL, genera el cliente Prisma, aplica las migraciones existentes y arranca Next.js. No reemplaza `.env` ni borra datos. Abrí [http://localhost:3000](http://localhost:3000). `.env` queda ignorado por Git. Las credenciales del ejemplo sirven solo para desarrollo local; PostgreSQL escucha en `127.0.0.1:5432`. Para detener Next.js usá `Ctrl+C`; para parar PostgreSQL sin borrar los datos: `docker compose down`. El volumen `gastobot_postgres_data` persiste. No uses `docker compose down -v` si querés conservarlo.
 
-La migración crea `expenses` de forma aditiva, con montos `BIGINT` y una restricción de rango en PostgreSQL. El formulario envía solo campos editables a `POST /api/expenses`; la respuesta exitosa es 201 y el gasto persistido. `PUT /api/expenses/{id}` reemplaza los campos editables y `DELETE /api/expenses/{id}` elimina un gasto tras confirmación. `GET /api/expenses` devuelve `{ expenses, month, currentMonthTotalCents }`. El total viaja como string de centavos para evitar problemas de serialización de `bigint`.
+La migración crea `expenses` de forma aditiva, con montos `BIGINT` y una restricción de rango en PostgreSQL. El formulario envía solo campos editables a `POST /api/expenses` (201); `PUT /api/expenses/{id}` reemplaza esos campos y `DELETE /api/expenses/{id}` elimina el registro tras confirmación en la interfaz. `GET /api/expenses` acepta `month=AAAA-MM`, `category` y `page`; devuelve gastos ordenados, `totalCount`, `hasMore`, `page`, `month` y `currentMonthTotalCents`. Los filtros afectan la lista; el total siempre corresponde al mes actual completo. Los totales viajan como strings de centavos para evitar problemas de serialización de `bigint`.
 
 ## Verificaciones
 
@@ -54,7 +54,9 @@ CI ejecuta instalación, generación Prisma, lint, typecheck, tests unitarios, m
 
 En el bootstrap del 2026-10-06 se verificaron `npm install`, `npm ci`, lint, typecheck, validación de schema, build, PostgreSQL 17.11 en estado healthy, conexión Prisma con `SELECT 1` y render de `/` con HTTP 200. La auditoría npm informó **9 alertas altas** en dependencias transitivas de las herramientas ESLint/Prisma; las sugerencias automáticas implican cambiar de línea mayor. No se ejecutó `npm audit fix --force`.
 
-En la primera feature se comprobaron 39 tests de dominio, 5 de integración con PostgreSQL y 2 de navegador. La migración se aplicó en desarrollo y en `gastobot_test`; `npm ci`, lint, tipos, validación Prisma y build pasaron. Un gasto sintético siguió visible tras detener y reiniciar el servidor de producción y se borró luego de `gastobot_test`. El workflow de GitHub aún no se ejecutó remotamente.
+En la primera feature se comprobaron 39 tests de dominio, 5 de integración con PostgreSQL y 2 de navegador. La migración se aplicó en desarrollo y en `gastobot_test`; `npm ci`, lint, tipos, validación Prisma y build pasaron. Un gasto sintético siguió visible tras detener y reiniciar el servidor de producción y se borró luego de `gastobot_test`.
+
+Con edición, eliminación y filtros se verificaron 52 tests de dominio, 11 de integración y 6 de navegador, además de lint, typecheck y build. Estas comprobaciones se ejecutaron localmente con `gastobot_test`; CI todavía no se ejecutó remotamente.
 
 ## Alcance y documentación
 
@@ -66,4 +68,7 @@ Uso local de un único usuario, en ARS y zona `America/Argentina/Buenos_Aires`. 
 - [Decisiones](docs/decisions/001-modular-monolith.md)
 - [Bootstrap](docs/features/initialize-project.md)
 - [Primera feature](docs/features/create-expense.md)
+- [Editar gasto](docs/features/edit-expense.md)
+- [Eliminar gasto](docs/features/delete-expense.md)
+- [Filtrar gastos](docs/features/filter-expenses.md)
 - [Instrucciones para agentes](AGENTS.md)

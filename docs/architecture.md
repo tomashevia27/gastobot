@@ -2,7 +2,7 @@
 
 ## Status
 
-The runtime foundation supports manual creation, editing and deletion. Filtering is a later slice.
+The local manual-expense flow supports creation, editing, deletion and filtered pagination. The current-month summary remains independent of list filters.
 
 ## Initial system
 
@@ -123,6 +123,7 @@ Use structured application errors:
 - diagnostic details only in server logs, without tokens or full personal payloads.
 
 POST returns 201 after persistence, 400 for invalid input and 500 for an unexpected server failure.
+PUT on an expense id replaces editable fields and DELETE permanently removes the record; both return 404 for an absent id. GET list parameters are validated and pagination runs in PostgreSQL.
 Do not trust request-supplied ids, source, timestamps or future user identity fields.
 
 ## Future boundaries

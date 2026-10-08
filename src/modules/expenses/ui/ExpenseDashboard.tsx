@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import type { ExpenseDto, ExpensesSnapshot } from "../application/types";
 import { CATEGORY_OPTIONS, PAYMENT_METHOD_OPTIONS, type Category, type PaymentMethod } from "../domain/constants";
 import { todayInBuenosAires } from "../domain/dates";
+import { DEFAULT_LIST_QUERY, EXPENSE_PAGE_SIZE, type ExpenseListQuery } from "../domain/list-query";
 import { formatAmountInput, formatArsCents } from "../domain/money";
 import styles from "./ExpenseDashboard.module.css";
 
@@ -51,6 +52,7 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
   const [form, setForm] = useState<FormValues>(emptyForm);
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<ExpenseListQuery>(DEFAULT_LIST_QUERY);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
@@ -58,6 +60,7 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
   const [listMessage, setListMessage] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletePending, setDeletePending] = useState(false);
+  const requestSequence = useRef(0);
 
   function update<K extends keyof FormValues>(field: K, value: FormValues[K]) {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -65,15 +68,36 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
     setMessage("");
   }
 
-  async function refreshExpenses() {
+  async function refreshExpenses(query: ExpenseListQuery = filters) {
+    const requestNumber = ++requestSequence.current;
+    const params = new URLSearchParams();
+    if (query.month) params.set("month", query.month);
+    if (query.category) params.set("category", query.category);
+    if (query.page > 1) params.set("page", String(query.page));
     try {
-      const response = await fetch("/api/expenses", { cache: "no-store" });
+      const response = await fetch(`/api/expenses${params.size ? `?${params}` : ""}`, { cache: "no-store" });
       if (!response.ok) throw new Error("Failed to refresh expenses.");
-      setSnapshot((await response.json()) as ExpensesSnapshot);
+      const next = (await response.json()) as ExpensesSnapshot;
+      if (requestNumber !== requestSequence.current) return;
+      if (next.expenses.length === 0 && query.page > 1 && next.totalCount > 0) {
+        const previous = { ...query, page: Math.ceil(next.totalCount / EXPENSE_PAGE_SIZE) };
+        setFilters(previous);
+        await refreshExpenses(previous);
+        return;
+      }
+      setSnapshot(next);
       setRefreshError("");
     } catch {
-      setRefreshError("No se pudo actualizar la lista. Recargá la página para intentarlo de nuevo.");
+      if (requestNumber === requestSequence.current) {
+        setRefreshError("No se pudo actualizar la lista. Recargá la página para intentarlo de nuevo.");
+      }
     }
+  }
+
+  function changeFilters(next: ExpenseListQuery) {
+    setFilters(next);
+    setListMessage("");
+    void refreshExpenses(next);
   }
 
   function beginEdit(expense: ExpenseDto) {
@@ -236,12 +260,27 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
           <div className={styles.panel}>
             <div className={styles.listHeading}>
               <h2>Gastos registrados</h2>
-              <span>{snapshot.expenses.length}</span>
+              <span>{snapshot.totalCount}</span>
+            </div>
+            <div className={styles.filters}>
+              <div className={styles.field}>
+                <label htmlFor="filter-month">Filtrar por mes</label>
+                <input id="filter-month" type="month" value={filters.month ?? ""} disabled={pending || deletePending}
+                  onChange={(event) => changeFilters({ ...filters, month: event.target.value || null, page: 1 })} />
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="filter-category">Filtrar por categoría</label>
+                <select id="filter-category" value={filters.category ?? ""} disabled={pending || deletePending}
+                  onChange={(event) => changeFilters({ ...filters, category: (event.target.value || null) as Category | null, page: 1 })}>
+                  <option value="">Todas las categorías</option>
+                  {CATEGORY_OPTIONS.map((option) => <option key={option.code} value={option.code}>{option.label}</option>)}
+                </select>
+              </div>
             </div>
             {refreshError && <p className={styles.error} role="alert">{refreshError}</p>}
             {listMessage && <p className={styles.success} role="status">{listMessage}</p>}
             {snapshot.expenses.length === 0 ? (
-              <p className={styles.empty}>Todavía no hay gastos registrados.</p>
+              <p className={styles.empty}>{filters.month || filters.category ? "No hay gastos para estos filtros." : "Todavía no hay gastos registrados."}</p>
             ) : (
               <ul className={styles.list}>
                 {snapshot.expenses.map((expense) => (
@@ -268,6 +307,13 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
                   </li>
                 ))}
               </ul>
+            )}
+            {snapshot.totalCount > EXPENSE_PAGE_SIZE && (
+              <div className={styles.pagination}>
+                <button type="button" disabled={filters.page === 1} onClick={() => changeFilters({ ...filters, page: filters.page - 1 })}>Anterior</button>
+                <span>Página {snapshot.page}</span>
+                <button type="button" disabled={!snapshot.hasMore} onClick={() => changeFilters({ ...filters, page: filters.page + 1 })}>Siguiente</button>
+              </div>
             )}
           </div>
         </section>

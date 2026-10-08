@@ -53,6 +53,8 @@
 .totalCard strong { display: block; font-size: clamp(2rem, 5vw, 3rem); overflow-wrap: anywhere; }
 .listHeading { display: flex; align-items: baseline; justify-content: space-between; }
 .listHeading span { color: #51645a; }
+.filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+.filters .field { margin-bottom: 0.6rem; }
 .empty { color: #51645a; margin: 0; }
 .list { list-style: none; margin: 0; padding: 0; }
 .item { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid #e4ebe5; padding: 1.1rem 0; }
@@ -61,11 +63,13 @@
 .amount { font-weight: 700; white-space: nowrap; }
 .itemSide { display: flex; flex-direction: column; align-items: flex-end; gap: 0.55rem; }
 .actions { display: flex; gap: 0.4rem; }
-.panel .actions button { width: auto; padding: 0.4rem 0.6rem; background: #e8f0e9; color: #254735; font-size: 0.85rem; }
-.panel .actions button:hover { background: #d8e6db; }
+.panel .actions button, .panel .pagination button { width: auto; padding: 0.4rem 0.6rem; background: #e8f0e9; color: #254735; font-size: 0.85rem; }
+.panel .actions button:hover, .panel .pagination button:hover { background: #d8e6db; }
 .confirm { max-width: 210px; border: 1px solid #e0c2c2; background: #fff8f8; border-radius: 10px; padding: 0.75rem; }
 .confirm p { color: #713434; margin: 0 0 0.5rem; }
 .confirm button { font-size: 0.82rem; padding: 0.5rem 0.6rem; }
+.pagination { display: flex; justify-content: space-between; align-items: center; gap: 0.7rem; border-top: 1px solid #e4ebe5; padding-top: 1rem; }
+.pagination span { color: #51645a; font-size: 0.9rem; white-space: nowrap; }
 
 @media (max-width: 760px) {
   .page { padding: 1.5rem 1rem 3rem; }
@@ -73,4 +77,8 @@
   .panel, .totalCard { padding: 1.25rem; }
   .item { flex-direction: column; }
   .itemSide { align-items: flex-start; }
+}
+
+@media (max-width: 420px) {
+  .filters { grid-template-columns: 1fr; }
 }

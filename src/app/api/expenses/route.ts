@@ -1,5 +1,6 @@
 import { createExpense, ExpenseValidationError, getExpensesSnapshot } from "@/modules/expenses/application/operations";
 import { prismaExpenseStore } from "@/modules/expenses/infrastructure/prisma-expense-store";
+import { parseExpenseListQuery } from "@/modules/expenses/domain/list-query";
 
 export const runtime = "nodejs";
 
@@ -23,9 +24,11 @@ export async function POST(request: Request): Promise<Response> {
   }
 }
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request = new Request("http://localhost/api/expenses")): Promise<Response> {
+  const query = parseExpenseListQuery(new URL(request.url).searchParams);
+  if ("errors" in query) return Response.json({ errors: query.errors }, { status: 400 });
   try {
-    return Response.json(await getExpensesSnapshot(prismaExpenseStore));
+    return Response.json(await getExpensesSnapshot(prismaExpenseStore, new Date(), query));
   } catch {
     console.error("Expense listing failed.");
     return Response.json({ error: "No se pudieron cargar los gastos." }, { status: 500 });
