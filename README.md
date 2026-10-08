@@ -63,7 +63,7 @@ En la primera función se comprobaron 39 pruebas de dominio, 5 de integración c
 
 Con edición, eliminación y filtros se verificaron 52 pruebas de dominio, 11 de integración y 6 de navegador, además de lint, tipos y compilación. Estas comprobaciones se ejecutaron localmente con `gastobot_test`; la integración continua todavía no se ejecutó remotamente.
 
-En v0.2 se verificaron 66 pruebas unitarias, 17 de integración con `gastobot_test`, 6 de navegador, lint, tipos, validación Prisma y compilación. También se comprobó que ambos comandos de Telegram informan la configuración faltante sin exponer credenciales. No se ejecutó una prueba con un bot real porque todavía no había token ni ID configurados en ese entorno; la guía describe esa comprobación manual. El primer intento de compilación dentro del entorno aislado falló en un subproceso de TypeScript; la compilación fuera de ese aislamiento terminó correctamente.
+En v0.2 se verificaron 66 pruebas unitarias, 17 de integración con `gastobot_test`, 6 de navegador, lint, tipos, validación Prisma y compilación. También se comprobó que ambos comandos de Telegram informan la configuración faltante sin exponer credenciales. La prueba automatizada se hizo sin credenciales reales; posteriormente Tomás configuró el bot y confirmó manualmente el recorrido real. El primer intento de compilación dentro del entorno aislado falló en un subproceso de TypeScript; la compilación fuera de ese aislamiento terminó correctamente.
 
 ## Alcance y documentación
 
@@ -79,5 +79,6 @@ Uso local de un único usuario, en ARS y zona `America/Argentina/Buenos_Aires`. 
 - [Eliminar gasto](docs/features/delete-expense.md)
 - [Filtrar gastos](docs/features/filter-expenses.md)
 - [Ingreso por Telegram](docs/features/telegram-expense-entry.md)
+- [Registro guiado por Telegram — especificado, pendiente de implementación](docs/features/telegram-guided-expense-entry.md)
 - [Crear y configurar el bot](docs/telegram-bot-setup.md)
 - [Instrucciones para agentes](AGENTS.md)

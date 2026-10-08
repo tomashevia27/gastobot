@@ -1,6 +1,6 @@
 # Función — Registrar gastos por Telegram
 
-Estado: implementada localmente en v0.2; falta la prueba manual con un bot real configurado por Tomás.
+Estado: implementada y verificada localmente en v0.2, incluida una prueba manual con el bot real configurado por Tomás.
 
 ## Objetivo y alcance
 

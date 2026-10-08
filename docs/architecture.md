@@ -38,6 +38,12 @@ flowchart TD
 
 El token del bot nunca llega al código del cliente. La web sigue limitada al uso local y no tiene autenticación pública. Para usar Telegram debe estar activo un proceso Node separado. Consultá [ADR 005](decisions/005-telegram-local-polling.md) y la [guía de configuración](telegram-bot-setup.md).
 
+### Flujo guiado especificado
+
+La mejora pendiente de v0.2 agrega una máquina de estados al adaptador de Telegram para implementar `/registrar_gasto`. El estado del borrador vive en memoria durante un máximo absoluto de diez minutos y no sobrevive al reinicio del proceso. Por lo tanto, no requiere una tabla de sesiones ni una migración. La [especificación del registro guiado](features/telegram-guided-expense-entry.md) define sus estados, transiciones, botones, correcciones y criterios de aceptación.
+
+El cliente de Telegram deberá admitir actualizaciones `callback_query`, teclados en línea y respuestas a callbacks. Las transiciones reúnen los campos sin persistirlos; confirmar llama a la misma operación de creación validada que usa `/gasto`. La persistencia final conserva la deduplicación transaccional por actualización de Telegram.
+
 ## Tecnologías
 
 - Next.js App Router y React.
@@ -62,7 +68,7 @@ Durante la inicialización se eligieron versiones exactas, configuración Prisma
 | src/modules/expenses/application/ | Operaciones de creación, listado y resumen | Primera función |
 | src/modules/expenses/infrastructure/ | Adaptación de persistencia Prisma | Primera función |
 | src/modules/expenses/ui/ | Componentes de formulario y lista de gastos | Primera función |
-| src/modules/telegram/ | Comandos, cliente HTTP y procesamiento de actualizaciones | v0.2 |
+| src/modules/telegram/ | Comandos, cliente HTTP, procesamiento de actualizaciones y estado conversacional efímero | v0.2 |
 | scripts/telegram-poll.ts | Proceso local de recepción de Telegram | v0.2 |
 | src/server/ | Cliente y configuración de base solo del servidor | Primera función o configuración del ORM |
 | prisma/ | Configuración del ORM y migraciones versionadas | Configuración inicial; migración con cada función necesaria |
