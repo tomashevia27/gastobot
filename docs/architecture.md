@@ -2,7 +2,7 @@
 
 ## Status
 
-The local manual-expense flow supports creation, editing, deletion and filtered pagination. The current-month summary remains independent of list filters.
+The local manual-expense flow supports creation, editing, deletion and filtered pagination. The current-month summary remains independent of list filters. v0.2 adds a local Telegram command adapter for expense creation.
 
 ## Initial system
 
@@ -18,6 +18,25 @@ flowchart TD
 ~~~
 
 Arrows show calls/dependencies in the initial implementation. Validation/domain code never depends on the storage adapter. Database access is infrastructure called by application code.
+
+## Telegram v0.2
+
+~~~mermaid
+flowchart TD
+    Telegram["Telegram Bot API"] --> Poller["Local getUpdates process"]
+    Poller --> Guard["Private chat and allowed user check"]
+    Guard --> Parser["Deterministic command parser"]
+    Parser --> Create["Expense creation operation"]
+    Create --> Rules["Shared expense validation"]
+    Create --> Tx["Prisma transaction"]
+    Tx --> Expense["expenses: source TELEGRAM"]
+    Tx --> Update["telegram_processed_updates: bot/update key"]
+    Poller --> Reply["sendMessage after processing"]
+~~~
+
+`scripts/telegram-poll.ts` loads local configuration and starts the loop. `src/modules/telegram/client.ts` maps the Telegram HTTP API, `command.ts` parses the restricted syntax, `processor.ts` authorizes and handles one update, and `poller.ts` advances the offset only after processing and replying. The Telegram adapter calls the same application validation used by the web route. PostgreSQL has a unique `(bot_id, update_id)` key; expense creation and recording that key are atomic. Deleting an expense sets the update's `expense_id` to null and keeps the key, so replay cannot recreate it. Reply delivery may repeat after an ambiguous network failure.
+
+The bot token never enters a client bundle. The web remains bound to local use without public authentication. A separate Node process is required while Telegram entry is in use. See [ADR 005](decisions/005-telegram-local-polling.md) and the [setup guide](telegram-bot-setup.md).
 
 ## Stack
 
@@ -65,7 +84,7 @@ A port/interface is introduced when it isolates a meaningful persistence/provide
 - Prisma types do not become the public HTTP contract.
 - Server Components may call application queries server-side without fetching their own HTTP API.
 - Shared request validation does not replace business-rule validation at the application boundary.
-- Future Telegram and agent-tool adapters reuse the application operations.
+- Telegram and future agent-tool adapters reuse the application operations.
 
 ## First feature flow
 
@@ -93,7 +112,7 @@ Server Actions are not needed for the first slice. No second API framework is re
 | payment_method | Valid method code | Required |
 | merchant | Nullable string | Up to 120 characters |
 | description | Nullable string | Up to 500 characters |
-| source | MANUAL_WEB | Assigned by backend |
+| source | MANUAL_WEB or TELEGRAM | Assigned by the originating server adapter |
 | created_at | UTC timestamp | Assigned by backend |
 | updated_at | UTC timestamp | Assigned by backend |
 

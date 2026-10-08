@@ -3,7 +3,7 @@
 ## Context and scope
 
 GastoBot is a personal expense tracker and a learning project.
-Current state: local v0.1 supports creating, editing, deleting and filtering manual expenses.
+Current state: local v0.2 supports manual expense management and deterministic Telegram expense entry.
 Read the active feature specification before changing code.
 
 Documentation:
@@ -41,11 +41,11 @@ Use a modular monolith organized by feature. Introduce ports when they isolate a
 Domain rules must not import React, Next.js, Prisma or external-provider SDKs.
 Keep transport handlers thin. Application code owns business operations.
 Keep database code and secrets server-side; never put them in client bundles.
-v0.1 is single-user local use; public/multi-user use requires authentication and ownership checks first.
+v0.2 is single-user local use; public/multi-user use requires authentication and ownership checks first.
 
 ## Data rules
 
-- v0.1 uses ARS only. Store money as integer cents, never fractional floating-point amounts.
+- Current local milestones use ARS only. Store money as integer cents, never fractional floating-point amounts.
 - Parse decimal input from strings with explicit Argentine formatting; validate safe integer ranges.
 - PostgreSQL amount_cents is BIGINT. Convert Prisma bigint explicitly at DTO boundaries.
 - Occurrence date is a civil YYYY-MM-DD date; timestamps are UTC instants.

@@ -32,6 +32,10 @@ First vertical slice:
 Editing, deletion and month/category filtering with paginated listing are implemented locally. The summary continues to show the current month's total across all categories, regardless of list filters.
 Charts and advanced analytics are later features.
 
+## v0.2: ingreso por Telegram
+
+La implementación local admite `/gasto` con monto y medio de pago obligatorios, más categoría, fecha, comercio y descripción opcionales. El bot confirma después de persistir. Solo se aceptan mensajes de texto desde el chat privado del usuario configurado. El comando exacto, errores y garantías ante reintentos están en [la especificación](features/telegram-expense-entry.md). La [guía de configuración](telegram-bot-setup.md) explica cómo crear el bot y poner en marcha el proceso local. La prueba con credenciales reales queda a cargo del usuario.
+
 ## Initial rules
 
 - Currency: ARS only.
@@ -88,7 +92,7 @@ MERCADO_PAGO is a payment-method label in v0.1; selecting it does not contact Me
 - Skill: instructions for performing a task.
 - Tool: an executable, validated application capability.
 
-## Vision: later stages
+## Milestones and later stages
 
 | Stage | Outcome | Prerequisite |
 | --- | --- | --- |

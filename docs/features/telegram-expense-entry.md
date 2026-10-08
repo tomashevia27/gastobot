@@ -1,6 +1,6 @@
 # Feature — Registrar gastos por Telegram
 
-Status: En implementación para v0.2.
+Status: Implementada localmente en v0.2; falta la prueba manual con un bot real configurado por Tomás.
 
 ## Objetivo y alcance
 
