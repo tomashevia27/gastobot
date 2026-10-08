@@ -1,6 +1,6 @@
 # GastoBot
 
-Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Ya se pueden crear y editar gastos manuales en ARS, verlos en una lista y consultar el total del mes actual. Los contratos están en [create-expense](docs/features/create-expense.md) y [edit-expense](docs/features/edit-expense.md).
+Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Ya se pueden crear, editar y eliminar gastos manuales en ARS, verlos en una lista y consultar el total del mes actual. Los contratos están en [create-expense](docs/features/create-expense.md), [edit-expense](docs/features/edit-expense.md) y [delete-expense](docs/features/delete-expense.md).
 
 ## Requisitos y versiones
 
@@ -22,7 +22,7 @@ npm run local
 
 `npm run local` instala dependencias si faltan o no coinciden, crea `.env` desde el ejemplo solo si no existe, levanta PostgreSQL, genera el cliente Prisma, aplica las migraciones existentes y arranca Next.js. No reemplaza `.env` ni borra datos. Abrí [http://localhost:3000](http://localhost:3000). `.env` queda ignorado por Git. Las credenciales del ejemplo sirven solo para desarrollo local; PostgreSQL escucha en `127.0.0.1:5432`. Para detener Next.js usá `Ctrl+C`; para parar PostgreSQL sin borrar los datos: `docker compose down`. El volumen `gastobot_postgres_data` persiste. No uses `docker compose down -v` si querés conservarlo.
 
-La migración crea `expenses` de forma aditiva, con montos `BIGINT` y una restricción de rango en PostgreSQL. El formulario envía solo campos editables a `POST /api/expenses`; la respuesta exitosa es 201 y el gasto persistido. `PUT /api/expenses/{id}` reemplaza los campos editables. `GET /api/expenses` devuelve `{ expenses, month, currentMonthTotalCents }`. El total viaja como string de centavos para evitar problemas de serialización de `bigint`.
+La migración crea `expenses` de forma aditiva, con montos `BIGINT` y una restricción de rango en PostgreSQL. El formulario envía solo campos editables a `POST /api/expenses`; la respuesta exitosa es 201 y el gasto persistido. `PUT /api/expenses/{id}` reemplaza los campos editables y `DELETE /api/expenses/{id}` elimina un gasto tras confirmación. `GET /api/expenses` devuelve `{ expenses, month, currentMonthTotalCents }`. El total viaja como string de centavos para evitar problemas de serialización de `bigint`.
 
 ## Verificaciones
 

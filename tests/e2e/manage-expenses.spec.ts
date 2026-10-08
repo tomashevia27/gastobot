@@ -70,3 +70,25 @@ test("keeps the edit form and saved record after a failed update", async ({ page
   await expect(page.getByLabel("Monto en ARS")).toHaveValue("25,50");
   await expect(row).toContainText("$ 10,00");
 });
+
+test("cancels and then confirms permanent deletion", async ({ page, request }) => {
+  const merchant = `Eliminar ${randomUUID()}`;
+  const created = await request.post("/api/expenses", { data: {
+    amount: "12,00", occurredOn: todayInBuenosAires(), paymentMethod: "DEBIT", merchant,
+  } });
+  expect(created.status()).toBe(201);
+  createdIds.push((await created.json()).id);
+
+  await page.goto("/");
+  const row = page.getByRole("listitem").filter({ hasText: merchant });
+  await row.getByRole("button", { name: "Eliminar", exact: true }).click();
+  await expect(row.getByText("¿Eliminar este gasto definitivamente?")).toBeVisible();
+  await row.getByRole("button", { name: "Cancelar eliminación" }).click();
+  await expect(row).toBeVisible();
+  await row.getByRole("button", { name: "Eliminar", exact: true }).click();
+  await row.getByRole("button", { name: "Confirmar eliminación" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Gasto eliminado." })).toBeVisible();
+  await expect(row).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText(merchant)).toHaveCount(0);
+});

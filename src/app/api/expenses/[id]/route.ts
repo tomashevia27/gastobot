@@ -1,4 +1,4 @@
-import { ExpenseNotFoundError, ExpenseValidationError, updateExpense } from "@/modules/expenses/application/operations";
+import { deleteExpense, ExpenseNotFoundError, ExpenseValidationError, updateExpense } from "@/modules/expenses/application/operations";
 import { prismaExpenseStore } from "@/modules/expenses/infrastructure/prisma-expense-store";
 
 export const runtime = "nodejs";
@@ -21,5 +21,17 @@ export async function PUT(request: Request, context: Context): Promise<Response>
     if (error instanceof ExpenseNotFoundError) return Response.json({ error: "No se encontró el gasto." }, { status: 404 });
     console.error("Expense update failed.");
     return Response.json({ error: "No se pudo actualizar el gasto. Intentá de nuevo." }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, context: Context): Promise<Response> {
+  const { id } = await context.params;
+  try {
+    await deleteExpense(id, prismaExpenseStore);
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    if (error instanceof ExpenseNotFoundError) return Response.json({ error: "No se encontró el gasto." }, { status: 404 });
+    console.error("Expense deletion failed.");
+    return Response.json({ error: "No se pudo eliminar el gasto. Intentá de nuevo." }, { status: 500 });
   }
 }

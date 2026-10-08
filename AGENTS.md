@@ -3,7 +3,7 @@
 ## Context and scope
 
 GastoBot is a personal expense tracker and a learning project.
-Current state: manual creation and editing implemented locally.
+Current state: manual creation, editing and deletion implemented locally.
 Read the active feature specification before changing code.
 
 Documentation:

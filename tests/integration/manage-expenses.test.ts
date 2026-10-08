@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { PUT } from "@/app/api/expenses/[id]/route";
+import { DELETE, PUT } from "@/app/api/expenses/[id]/route";
 import { POST } from "@/app/api/expenses/route";
 import { getExpensesSnapshot } from "@/modules/expenses/application/operations";
 import { prismaExpenseStore } from "@/modules/expenses/infrastructure/prisma-expense-store";
@@ -67,7 +67,17 @@ describe("expense editing and deletion", () => {
       expect((await PUT(new Request(`http://localhost/api/expenses/${id}`, {
         method: "PUT", body: JSON.stringify(input),
       }), routeContext(id))).status).toBe(404);
+      expect((await DELETE(new Request(`http://localhost/api/expenses/${id}`, { method: "DELETE" }), routeContext(id))).status).toBe(404);
     }
   });
 
+  it("deletes a saved expense and removes its contribution from the total", async () => {
+    const original = await create();
+    const before = await getExpensesSnapshot(prismaExpenseStore, new Date("2032-04-15T12:00:00Z"));
+    const response = await DELETE(new Request(`http://localhost/api/expenses/${original.id}`, { method: "DELETE" }), routeContext(original.id));
+    expect(response.status).toBe(204);
+    expect(await prisma.expense.findUnique({ where: { id: original.id } })).toBeNull();
+    const after = await getExpensesSnapshot(prismaExpenseStore, new Date("2032-04-15T12:00:00Z"));
+    expect(BigInt(after.currentMonthTotalCents)).toBe(BigInt(before.currentMonthTotalCents) - 1000n);
+  });
 });

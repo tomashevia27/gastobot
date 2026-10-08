@@ -2,7 +2,7 @@
 
 ## Status
 
-The runtime foundation supports manual creation and editing. Deletion and filtering are later slices.
+The runtime foundation supports manual creation, editing and deletion. Filtering is a later slice.
 
 ## Initial system
 

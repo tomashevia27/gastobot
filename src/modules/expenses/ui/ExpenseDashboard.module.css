@@ -45,6 +45,8 @@
 .panel button:disabled { cursor: wait; opacity: 0.7; }
 .panel button.secondaryButton { margin-top: 0.7rem; background: #e8f0e9; color: #254735; }
 .panel button.secondaryButton:hover { background: #d8e6db; }
+.panel button.dangerButton { background: #a12d2d; }
+.panel button.dangerButton:hover { background: #842424; }
 .overview { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
 .totalCard { background: #173e2a; color: #fff; border-radius: 20px; padding: 1.7rem; }
 .totalCard p { color: #c5ddcc; margin: 0 0 0.65rem; }
@@ -61,6 +63,9 @@
 .actions { display: flex; gap: 0.4rem; }
 .panel .actions button { width: auto; padding: 0.4rem 0.6rem; background: #e8f0e9; color: #254735; font-size: 0.85rem; }
 .panel .actions button:hover { background: #d8e6db; }
+.confirm { max-width: 210px; border: 1px solid #e0c2c2; background: #fff8f8; border-radius: 10px; padding: 0.75rem; }
+.confirm p { color: #713434; margin: 0 0 0.5rem; }
+.confirm button { font-size: 0.82rem; padding: 0.5rem 0.6rem; }
 
 @media (max-width: 760px) {
   .page { padding: 1.5rem 1rem 3rem; }

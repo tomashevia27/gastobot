@@ -62,6 +62,11 @@ export const prismaExpenseStore: ExpenseStore = {
     return toDto(await prisma.expense.findUniqueOrThrow({ where: { id } }));
   },
 
+  async delete(id: string) {
+    const result = await prisma.expense.deleteMany({ where: { id } });
+    return result.count > 0;
+  },
+
   async findAll() {
     const expenses = await prisma.expense.findMany({
       orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }, { id: "asc" }],

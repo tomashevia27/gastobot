@@ -55,6 +55,9 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const [refreshError, setRefreshError] = useState("");
+  const [listMessage, setListMessage] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
 
   function update<K extends keyof FormValues>(field: K, value: FormValues[K]) {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -74,6 +77,7 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
   }
 
   function beginEdit(expense: ExpenseDto) {
+    setDeletingId(null);
     setEditingId(expense.id);
     setForm({
       amount: formatAmountInput(expense.amountCents), occurredOn: expense.occurredOn,
@@ -90,6 +94,29 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
     setForm(emptyForm());
     setErrors({});
     setMessage("");
+  }
+
+  async function confirmDelete(id: string) {
+    if (deletePending) return;
+    setDeletePending(true);
+    setRefreshError("");
+    setListMessage("");
+    try {
+      const response = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const body = await response.json() as { error?: string };
+        setRefreshError(body.error ?? "No se pudo eliminar el gasto. Intentá de nuevo.");
+        return;
+      }
+      if (editingId === id) cancelEdit();
+      setDeletingId(null);
+      setListMessage("Gasto eliminado.");
+      await refreshExpenses();
+    } catch {
+      setRefreshError("No se pudo eliminar el gasto. Intentá de nuevo.");
+    } finally {
+      setDeletePending(false);
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -212,6 +239,7 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
               <span>{snapshot.expenses.length}</span>
             </div>
             {refreshError && <p className={styles.error} role="alert">{refreshError}</p>}
+            {listMessage && <p className={styles.success} role="status">{listMessage}</p>}
             {snapshot.expenses.length === 0 ? (
               <p className={styles.empty}>Todavía no hay gastos registrados.</p>
             ) : (
@@ -226,8 +254,16 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
                     <div className={styles.itemSide}>
                       <span className={styles.amount}>{formatArsCents(expense.amountCents)}</span>
                       <div className={styles.actions}>
-                        <button type="button" onClick={() => beginEdit(expense)} disabled={pending}>Editar</button>
+                        <button type="button" onClick={() => beginEdit(expense)} disabled={pending || deletePending}>Editar</button>
+                        <button type="button" onClick={() => { setDeletingId(expense.id); setListMessage(""); }} disabled={pending || deletePending}>Eliminar</button>
                       </div>
+                      {deletingId === expense.id && (
+                        <div className={styles.confirm}>
+                          <p>¿Eliminar este gasto definitivamente?</p>
+                          <button type="button" className={styles.dangerButton} disabled={deletePending} onClick={() => void confirmDelete(expense.id)}>Confirmar eliminación</button>
+                          <button type="button" className={styles.secondaryButton} disabled={deletePending} onClick={() => setDeletingId(null)}>Cancelar eliminación</button>
+                        </div>
+                      )}
                     </div>
                   </li>
                 ))}

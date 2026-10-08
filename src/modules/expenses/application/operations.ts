@@ -35,6 +35,10 @@ export async function updateExpense(id: string, input: unknown, store: ExpenseSt
   return updated;
 }
 
+export async function deleteExpense(id: string, store: ExpenseStore): Promise<void> {
+  if (!validExpenseId(id) || !(await store.delete(id))) throw new ExpenseNotFoundError();
+}
+
 export async function getExpensesSnapshot(
   store: ExpenseStore,
   now: Date = new Date(),
