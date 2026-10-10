@@ -64,5 +64,6 @@ Detené el proceso con `Ctrl+C`. Para volver a recibir mensajes, ejecutá otra v
 - **La computadora estuvo apagada:** Telegram conserva actualizaciones pendientes por un máximo de 24 horas. Las más antiguas pueden perderse; revisá la lista web antes de volver a enviar un gasto.
 - **Confirmación repetida:** puede ocurrir si una respuesta se envió pero no llegó la confirmación de recepción al proceso. La misma actualización no crea un segundo gasto.
 - **Botón viejo sin efecto:** los botones pertenecen a un borrador y a un paso concretos. Si el registro venció o ya se guardó, el bot lo indica y pide empezar de nuevo con `/registrar_gasto`.
+- **Respuestas que tardan 20–30 segundos:** revisá la terminal de `npm run telegram`. Si aparece `Fallo de Telegram`, el proceso está reintentando. `getUpdates` indica un problema al recibir mensajes; `sendMessage` o `answerCallbackQuery`, al responder. Un `HTTP 409` en `getUpdates` suele indicar otra instancia del bot o un webhook activo. Un código como `ETIMEDOUT` indica un problema de conexión. La línea muestra la operación y el tiempo hasta el próximo intento sin imprimir el token ni el contenido del gasto.
 
 La recepción por `getUpdates`, el uso de `offset`, la exclusión mutua con webhooks y el plazo de retención están descritos en la [API oficial de bots](https://core.telegram.org/bots/api#getting-updates).

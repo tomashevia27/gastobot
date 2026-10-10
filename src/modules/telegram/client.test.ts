@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TelegramApiError, TelegramHttpClient } from "./client";
+import { TelegramApiError, TelegramHttpClient, TelegramTransportError } from "./client";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -81,8 +81,14 @@ describe("Telegram HTTP boundary", () => {
   });
 
   it("does not expose the bot token in API errors", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("private network details")));
-    await expect(new TelegramHttpClient("test-secret").getMe()).rejects.toThrow("Telegram getMe could not be completed.");
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("private network details", {
+      cause: { code: "ETIMEDOUT" },
+    })));
+    await expect(new TelegramHttpClient("test-secret").getMe()).rejects.toMatchObject({
+      method: "getMe",
+      code: "ETIMEDOUT",
+      message: "Telegram getMe could not be completed.",
+    } satisfies Partial<TelegramTransportError>);
   });
 
   it("exposes a typed API status without exposing the bot token", async () => {

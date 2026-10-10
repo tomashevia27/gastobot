@@ -44,6 +44,23 @@ export class TelegramApiError extends Error {
   }
 }
 
+export class TelegramTransportError extends Error {
+  constructor(
+    public readonly method: string,
+    public readonly code: string | null,
+  ) {
+    super(`Telegram ${method} could not be completed.`);
+  }
+}
+
+function transportCode(error: unknown): string | null {
+  if (!error || typeof error !== "object" || !("cause" in error)) return null;
+  const cause = error.cause;
+  if (!cause || typeof cause !== "object" || !("code" in cause)) return null;
+  const code = cause.code;
+  return typeof code === "string" && /^[A-Z_]+$/.test(code) ? code : null;
+}
+
 export interface TelegramClient {
   getMe(): Promise<{ id: number }>;
   getUpdates(offset: number | undefined, signal: AbortSignal): Promise<TelegramUpdate[]>;
@@ -71,7 +88,7 @@ export class TelegramHttpClient implements TelegramClient {
     } catch (error) {
       if (signal?.aborted) throw error;
       if (error instanceof TelegramApiError) throw error;
-      throw new Error(`Telegram ${method} could not be completed.`);
+      throw new TelegramTransportError(method, transportCode(error));
     }
   }
 

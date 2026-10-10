@@ -1,6 +1,6 @@
 import { createTelegramExpense, findTelegramExpenseResult } from "@/modules/expenses/application/operations";
 import type { ExpenseStore } from "@/modules/expenses/application/types";
-import type { TelegramClient } from "./client";
+import { TelegramApiError, TelegramTransportError, type TelegramClient } from "./client";
 import { TELEGRAM_MENU } from "./command";
 import { TelegramConversation } from "./conversation";
 import { processTelegramUpdate } from "./processor";
@@ -37,6 +37,7 @@ export async function runTelegramPoller(
   let offset: number | undefined;
   let retryDelay = 1000;
   while (!signal.aborted) {
+    let phase = "getUpdates";
     try {
       const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(35_000)]);
       const updates = await client.getUpdates(offset, requestSignal);
@@ -45,13 +46,19 @@ export async function runTelegramPoller(
       if (updates.length === 0) offset = undefined;
       for (const update of updates) {
         if (signal.aborted) break;
+        phase = `actualización ${update.update_id}`;
         await processTelegramUpdate(update, botId, allowedUserId, client, store, conversation);
         offset = update.update_id + 1;
       }
       retryDelay = 1000;
-    } catch {
+    } catch (error) {
       if (signal.aborted) break;
-      console.error("No se pudo procesar una actualización de Telegram. Se reintentará.");
+      const detail = error instanceof TelegramApiError
+        ? `${error.method}: HTTP ${error.status}`
+        : error instanceof TelegramTransportError
+          ? `${error.method}: ${error.code ?? "error de conexión"}`
+          : "error interno";
+      console.error(`Fallo de Telegram en ${phase} (${detail}). Reintento en ${retryDelay / 1000} s.`);
       await delay(retryDelay, signal);
       retryDelay = Math.min(retryDelay * 2, 30_000);
     }
