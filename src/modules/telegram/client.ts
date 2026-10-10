@@ -1,3 +1,4 @@
+import { request } from "node:https";
 import { z } from "zod";
 
 const chatSchema = z.object({ id: z.number().int().safe(), type: z.string() });
@@ -54,12 +55,46 @@ export class TelegramTransportError extends Error {
 }
 
 function transportCode(error: unknown): string | null {
-  if (!error || typeof error !== "object" || !("cause" in error)) return null;
-  const cause = error.cause;
-  if (!cause || typeof cause !== "object" || !("code" in cause)) return null;
-  const code = cause.code;
+  if (!error || typeof error !== "object") return null;
+  const coded = "code" in error ? error : "cause" in error ? error.cause : null;
+  if (!coded || typeof coded !== "object" || !("code" in coded)) return null;
+  const code = coded.code;
   return typeof code === "string" && /^[A-Z_]+$/.test(code) ? code : null;
 }
+
+type TelegramTransport = (
+  token: string, method: string, body: object, signal?: AbortSignal,
+) => Promise<{ status: number; payload: unknown }>;
+
+const postTelegramJson: TelegramTransport = (token, method, body, signal) => new Promise((resolve, reject) => {
+  const json = JSON.stringify(body);
+  const connection = request({
+    hostname: "api.telegram.org",
+    path: `/bot${token}/${method}`,
+    method: "POST",
+    family: 4,
+    headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(json) },
+    signal,
+    timeout: method === "getUpdates" ? 32_000 : 10_000,
+  }, (response) => {
+    let responseBody = "";
+    response.setEncoding("utf8");
+    response.on("data", (chunk: string) => { responseBody += chunk; });
+    response.on("error", reject);
+    response.on("end", () => {
+      try {
+        resolve({ status: response.statusCode ?? 0, payload: JSON.parse(responseBody) as unknown });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+  connection.on("timeout", () => {
+    connection.destroy(Object.assign(new Error("Telegram request timed out."), { code: "ETIMEDOUT" }));
+  });
+  connection.on("error", reject);
+  connection.end(json);
+});
 
 export interface TelegramClient {
   getMe(): Promise<{ id: number }>;
@@ -70,19 +105,13 @@ export interface TelegramClient {
 }
 
 export class TelegramHttpClient implements TelegramClient {
-  constructor(private readonly token: string) {}
+  constructor(private readonly token: string, private readonly transport: TelegramTransport = postTelegramJson) {}
 
   private async call(method: string, body: object, signal?: AbortSignal): Promise<unknown> {
     try {
-      const response = await fetch(`https://api.telegram.org/bot${this.token}/${method}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        signal,
-      });
-      const payload: unknown = await response.json();
-      if (!response.ok || !payload || typeof payload !== "object" || !("ok" in payload) || payload.ok !== true) {
-        throw new TelegramApiError(method, response.status);
+      const { status, payload } = await this.transport(this.token, method, body, signal);
+      if (status < 200 || status >= 300 || !payload || typeof payload !== "object" || !("ok" in payload) || payload.ok !== true) {
+        throw new TelegramApiError(method, status);
       }
       return payload;
     } catch (error) {
