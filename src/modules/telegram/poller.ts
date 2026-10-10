@@ -1,5 +1,8 @@
+import { createTelegramExpense, findTelegramExpenseResult } from "@/modules/expenses/application/operations";
 import type { ExpenseStore } from "@/modules/expenses/application/types";
 import type { TelegramClient } from "./client";
+import { TELEGRAM_MENU } from "./command";
+import { TelegramConversation } from "./conversation";
 import { processTelegramUpdate } from "./processor";
 
 function delay(ms: number, signal: AbortSignal): Promise<void> {
@@ -22,6 +25,15 @@ export async function runTelegramPoller(
   signal: AbortSignal,
 ): Promise<void> {
   const { id: botId } = await client.getMe();
+  try {
+    await client.setMyCommands(TELEGRAM_MENU);
+  } catch {
+    console.error("No se pudo publicar el menú de comandos. Se puede configurar desde BotFather con /setcommands.");
+  }
+  const conversation = new TelegramConversation({
+    createExpense: (input, updateId) => createTelegramExpense(input, { botId, updateId }, store),
+    recoverExpense: (updateId) => findTelegramExpenseResult({ botId, updateId }, store),
+  });
   let offset: number | undefined;
   let retryDelay = 1000;
   while (!signal.aborted) {
@@ -33,7 +45,7 @@ export async function runTelegramPoller(
       if (updates.length === 0) offset = undefined;
       for (const update of updates) {
         if (signal.aborted) break;
-        await processTelegramUpdate(update, botId, allowedUserId, client, store);
+        await processTelegramUpdate(update, botId, allowedUserId, client, store, conversation);
         offset = update.update_id + 1;
       }
       retryDelay = 1000;

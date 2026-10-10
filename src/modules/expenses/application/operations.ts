@@ -37,6 +37,10 @@ export async function createTelegramExpense(
   return store.insertFromTelegram(validateForCreation(input), key);
 }
 
+export async function findTelegramExpenseResult(key: TelegramUpdateKey, store: ExpenseStore) {
+  return store.findTelegramResult(key);
+}
+
 export async function updateExpense(id: string, input: unknown, store: ExpenseStore): Promise<ExpenseDto> {
   if (!validExpenseId(id)) throw new ExpenseNotFoundError();
   const validated = validateExpenseInput(input);

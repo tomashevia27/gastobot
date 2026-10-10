@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseTelegramCommand } from "./command";
+import { isQuickGastoCommand, parseTelegramCommand } from "./command";
 
 const sentAt = new Date("2026-10-09T00:30:00Z");
 
@@ -17,8 +17,35 @@ describe("Telegram commands", () => {
     });
   });
 
-  it.each(["/start", "/ayuda", "/help"])("answers %s with help", (text) => {
-    expect(parseTelegramCommand(text, sentAt)).toEqual({ kind: "help" });
+  it("classifies the guided flow, cancellation and help commands", () => {
+    expect(parseTelegramCommand("/registrar_gasto", sentAt).kind).toBe("register");
+    expect(parseTelegramCommand("/registrar-gasto", sentAt).kind).toBe("register");
+    expect(parseTelegramCommand("/cancelar", sentAt).kind).toBe("cancel");
+    expect(parseTelegramCommand("/start", sentAt).kind).toBe("welcome");
+    expect(parseTelegramCommand("/ayuda", sentAt).kind).toBe("help");
+    expect(parseTelegramCommand("/help", sentAt).kind).toBe("help");
+  });
+
+  it("accepts commands with the bot username suffix", () => {
+    expect(parseTelegramCommand("/registrar_gasto@MiGastoBot", sentAt).kind).toBe("register");
+    expect(parseTelegramCommand("/gasto@MiGastoBot 10 efectivo", sentAt)).toEqual({
+      kind: "create", input: { amount: "10", paymentMethod: "CASH", occurredOn: "2026-10-08" },
+    });
+    expect(isQuickGastoCommand("/gasto@MiGastoBot 10 efectivo")).toBe(true);
+    expect(isQuickGastoCommand("gasto 10 efectivo")).toBe(false);
+    expect(isQuickGastoCommand("/registrar_gasto")).toBe(false);
+  });
+
+  it("tells free text how to start the guided flow", () => {
+    expect(parseTelegramCommand("gasté mucho hoy", sentAt)).toEqual({
+      kind: "error", message: "No hay un registro en curso. Enviá /registrar_gasto para empezar uno paso a paso o /ayuda para ver los comandos.",
+    });
+  });
+
+  it("rejects unknown commands", () => {
+    expect(parseTelegramCommand("/borrar 10", sentAt)).toEqual({
+      kind: "error", message: "Comando desconocido. Usá /ayuda.",
+    });
   });
 
   it.each([

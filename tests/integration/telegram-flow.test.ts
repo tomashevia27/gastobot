@@ -1,7 +1,9 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/server/prisma";
+import { createTelegramExpense, findTelegramExpenseResult } from "@/modules/expenses/application/operations";
 import { prismaExpenseStore } from "@/modules/expenses/infrastructure/prisma-expense-store";
 import type { TelegramClient, TelegramUpdate } from "@/modules/telegram/client";
+import { TelegramConversation } from "@/modules/telegram/conversation";
 import { processTelegramUpdate } from "@/modules/telegram/processor";
 import { runTelegramPoller } from "@/modules/telegram/poller";
 
@@ -20,6 +22,17 @@ function update(text: string): TelegramUpdate {
   };
 }
 
+function replyClient(sendMessage: (chatId: number, text: string) => Promise<void>) {
+  return { sendMessage, answerCallbackQuery: async () => {} };
+}
+
+function newConversation(): TelegramConversation {
+  return new TelegramConversation({
+    createExpense: (input, updateId) => createTelegramExpense(input, { botId, updateId }, prismaExpenseStore),
+    recoverExpense: (updateId) => findTelegramExpenseResult({ botId, updateId }, prismaExpenseStore),
+  });
+}
+
 afterAll(async () => {
   if (updateIds.length) await prisma.telegramProcessedUpdate.deleteMany({ where: { botId: BigInt(botId), updateId: { in: updateIds.map(BigInt) } } });
   if (expenseIds.length) await prisma.expense.deleteMany({ where: { id: { in: expenseIds } } });
@@ -30,7 +43,7 @@ describe("Telegram message flow", () => {
   it("confirms a saved expense and assigns the message's local date", async () => {
     const incoming = update("/gasto 8.500,50 efectivo --categoria comida");
     const sendMessage = vi.fn<(chatId: number, text: string) => Promise<void>>().mockResolvedValue(undefined);
-    await processTelegramUpdate(incoming, botId, userId, { sendMessage }, prismaExpenseStore);
+    await processTelegramUpdate(incoming, botId, userId, replyClient(sendMessage), prismaExpenseStore, newConversation());
     const processed = await prisma.telegramProcessedUpdate.findUniqueOrThrow({
       where: { botId_updateId: { botId: BigInt(botId), updateId: BigInt(incoming.update_id) } },
       include: { expense: true },
@@ -49,9 +62,9 @@ describe("Telegram message flow", () => {
     group.message!.chat.type = "group";
     const sendMessage = vi.fn<(chatId: number, text: string) => Promise<void>>().mockResolvedValue(undefined);
     const before = await prisma.expense.count();
-    await processTelegramUpdate(invalid, botId, userId, { sendMessage }, prismaExpenseStore);
-    await processTelegramUpdate(unauthorized, botId, userId, { sendMessage }, prismaExpenseStore);
-    await processTelegramUpdate(group, botId, userId, { sendMessage }, prismaExpenseStore);
+    await processTelegramUpdate(invalid, botId, userId, replyClient(sendMessage), prismaExpenseStore, newConversation());
+    await processTelegramUpdate(unauthorized, botId, userId, replyClient(sendMessage), prismaExpenseStore, newConversation());
+    await processTelegramUpdate(group, botId, userId, replyClient(sendMessage), prismaExpenseStore, newConversation());
     expect(await prisma.expense.count()).toBe(before);
     expect(sendMessage).toHaveBeenCalledTimes(1);
     expect(sendMessage.mock.calls[0][1]).toContain("No se guardó el gasto");
@@ -76,6 +89,8 @@ describe("Telegram message flow", () => {
         sendAttempts += 1;
         if (sendAttempts === 1) throw new Error("temporary network failure");
       },
+      answerCallbackQuery: async () => {},
+      setMyCommands: async () => {},
     };
 
     const previousError = console.error;

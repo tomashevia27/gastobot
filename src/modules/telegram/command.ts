@@ -1,4 +1,5 @@
 import { todayInBuenosAires } from "@/modules/expenses/domain/dates";
+import type { TelegramBotCommand } from "./client";
 
 const payments = {
   efectivo: "CASH", mercado_pago: "MERCADO_PAGO", debito: "DEBIT", credito: "CREDIT",
@@ -13,13 +14,32 @@ const categories = {
 
 const options = { "--categoria": "category", "--fecha": "occurredOn", "--comercio": "merchant", "--descripcion": "description" } as const;
 
+export const TELEGRAM_WELCOME = [
+  "Hola, soy GastoBot y registro tus gastos personales en pesos argentinos.",
+  "Tocá «Registrar gasto» para cargar uno paso a paso, o usá /gasto para el ingreso rápido.",
+  "/ayuda muestra todos los comandos.",
+].join("\n");
+
 export const TELEGRAM_HELP = [
-  "Usá /gasto MONTO MEDIO [opciones]",
+  "Registro guiado: /registrar_gasto (también acepto /registrar-gasto). Te pregunto un dato por vez, con botones, y muestro un resumen para confirmar, corregir o cancelar.",
+  "Ingreso rápido: /gasto MONTO MEDIO [opciones]",
   "Ejemplo: /gasto 8.500,50 efectivo --categoria comida --fecha 2026-10-08 --comercio \"Kiosco Norte\" --descripcion \"Almuerzo\"",
   "Medios: efectivo, mercado_pago, debito, credito, transferencia, otro.",
   "Categorías: comida, supermercado, transporte, combustible, salidas, educacion, salud, servicios, otros, sin_categoria.",
-  "Opciones: --categoria, --fecha, --comercio, --descripcion. La fecha y categoría se pueden omitir.",
+  "Opciones de /gasto: --categoria, --fecha, --comercio, --descripcion. La fecha y categoría se pueden omitir.",
+  "Otros comandos: /cancelar descarta el registro en curso.",
 ].join("\n");
+
+export const TELEGRAM_NO_FLOW_HINT = [
+  "No hay un registro en curso. Enviá /registrar_gasto para empezar uno paso a paso o /ayuda para ver los comandos.",
+].join("\n");
+
+export const TELEGRAM_MENU: TelegramBotCommand[] = [
+  { command: "registrar_gasto", description: "Registrar un gasto paso a paso" },
+  { command: "gasto", description: "Registrar gasto con un comando rápido" },
+  { command: "cancelar", description: "Cancelar el registro en curso" },
+  { command: "ayuda", description: "Ver ayuda y ejemplos" },
+];
 
 type ExpenseCommand = {
   amount: string;
@@ -31,9 +51,24 @@ type ExpenseCommand = {
 };
 
 export type ParsedCommand =
+  | { kind: "welcome" }
   | { kind: "help" }
+  | { kind: "cancel" }
+  | { kind: "register" }
   | { kind: "error"; message: string }
   | { kind: "create"; input: ExpenseCommand };
+
+export function commandWord(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("/")) return "";
+  const word = trimmed.split(/\s/, 1)[0];
+  const atIndex = word.indexOf("@");
+  return atIndex === -1 ? word : word.slice(0, atIndex);
+}
+
+export function isQuickGastoCommand(text: string): boolean {
+  return commandWord(text) === "/gasto";
+}
 
 function tokenize(input: string): string[] | null {
   const tokens: string[] = [];
@@ -67,10 +102,18 @@ export function parseTelegramCommand(text: string, sentAt: Date): ParsedCommand 
   if (text.length > 2048) return { kind: "error", message: "El comando es demasiado largo." };
   const tokens = tokenize(text.trim());
   if (!tokens) return { kind: "error", message: "Revisá las comillas del comando. Usá /ayuda para ver un ejemplo." };
-  if (tokens.length === 1 && ["/start", "/ayuda", "/help"].includes(tokens[0])) return { kind: "help" };
-  if (tokens[0] !== "/gasto") return { kind: "error", message: "Comando desconocido. Usá /ayuda." };
+
+  const word = commandWord(text);
+  if (word === "/start") return { kind: "welcome" };
+  if (word === "/ayuda" || word === "/help") return { kind: "help" };
+  if (word === "/cancelar") return { kind: "cancel" };
+  if (word === "/registrar_gasto" || word === "/registrar-gasto") return { kind: "register" };
+  if (word !== "/gasto") {
+    return { kind: "error", message: word ? "Comando desconocido. Usá /ayuda." : TELEGRAM_NO_FLOW_HINT };
+  }
   if (tokens.length < 3) return { kind: "error", message: "Faltan monto o medio de pago. Usá /ayuda." };
 
+  tokens[0] = "/gasto";
   const paymentMethod = payments[tokens[2] as keyof typeof payments];
   if (!paymentMethod) return { kind: "error", message: "Medio de pago desconocido. Usá /ayuda para ver los valores válidos." };
 

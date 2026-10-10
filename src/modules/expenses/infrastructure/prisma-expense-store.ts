@@ -76,6 +76,15 @@ export const prismaExpenseStore: ExpenseStore = {
     }
   },
 
+  async findTelegramResult(key) {
+    const processed = await prisma.telegramProcessedUpdate.findUnique({
+      where: { botId_updateId: { botId: BigInt(key.botId), updateId: BigInt(key.updateId) } },
+      include: { expense: true },
+    });
+    if (!processed) return null;
+    return { expense: processed.expense ? toDto(processed.expense) : null };
+  },
+
   async update(id: string, input: ValidatedExpenseInput) {
     const result = await prisma.expense.updateMany({
       where: { id },
