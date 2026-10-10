@@ -227,14 +227,43 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>GastoBot · Registro personal</p>
-        <h1>Tus gastos, claros y al día.</h1>
-        <p>Registrá un gasto en pesos y explorá cuánto gastaste en cada período.</p>
+        <div className={styles.brandBar}>
+          <div className={styles.brandLockup}>
+            <span className={styles.brandMark} aria-hidden="true">
+              <svg viewBox="0 0 48 48" fill="none">
+                <path d="M12 8h24v31l-4-3-4 3-4-3-4 3-4-3-4 3V8Z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
+                <circle cx="24" cy="18" r="4" fill="currentColor" />
+                <path d="M18 28h12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className={styles.brandName}>GastoBot<span>Tu cuaderno de gastos</span></span>
+          </div>
+          <span className={styles.brandAside}>HECHO PARA TUS DÍAS</span>
+        </div>
+        <div className={styles.heroContent}>
+          <div>
+            <p className={styles.eyebrow}>UN POCO MÁS DE CLARIDAD, TODOS LOS DÍAS</p>
+            <h1>Tus gastos, <em>a mano.</em></h1>
+            <p className={styles.heroDescription}>Anotá en segundos. Después volvé a mirar con calma en qué se fue la plata.</p>
+          </div>
+          <div className={styles.heroArt} aria-hidden="true">
+            <span className={styles.heroSun} />
+            <div className={styles.heroReceipt}>
+              <span className={styles.heroReceiptDot} />
+              <span className={styles.heroReceiptLine} />
+              <span className={styles.heroReceiptLine} />
+              <span className={styles.heroReceiptShort} />
+            </div>
+          </div>
+        </div>
       </header>
 
       <div className={styles.grid}>
         <section className={styles.panel} aria-labelledby="new-expense-title">
-          <h2 id="new-expense-title">{editingId ? "Editar gasto" : "Nuevo gasto"}</h2>
+          <div className={styles.sectionHeading}>
+            <span className={styles.sectionNumber}>01</span>
+            <div><p>REGISTRO</p><h2 id="new-expense-title">{editingId ? "Editar gasto" : "Anotá un gasto"}</h2></div>
+          </div>
           <form onSubmit={submit} noValidate>
             <div className={styles.field}>
               <label htmlFor="amount">Monto en ARS</label>
@@ -309,8 +338,11 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
 
         <section className={styles.overview} aria-label="Resumen y gastos">
           <div className={styles.filterCard}>
-            <h2>Explorá tus gastos</h2>
-            <p>Elegí un período y una categoría para ver el total y los movimientos.</p>
+            <div className={styles.sectionHeading}>
+              <span className={styles.sectionNumber}>02</span>
+              <div><p>EXPLORAR</p><h2>Encontrá tus números</h2></div>
+            </div>
+            <p className={styles.filterIntro}>Elegí un período y una categoría. El total y la lista se acomodan a tu selección.</p>
             <div className={styles.filters}>
               <div className={styles.field}>
                 <label htmlFor="filter-period">Período</label>
@@ -346,24 +378,25 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
             {periodError && <p className={styles.error} role="alert">{periodError}</p>}
           </div>
           <div className={styles.totalCard}>
-            <p>Total del período {filters.month ? `· ${monthLabel(filters.month)}` : filters.from && filters.to ? `· ${dateLabel(filters.from)} al ${dateLabel(filters.to)}` : ""}</p>
+            <p className={styles.totalEyebrow}>EN ESTE PERÍODO</p>
             <strong>{formatArsCents(snapshot.rangeTotalCents)}</strong>
-            <span>{snapshot.totalCount} {snapshot.totalCount === 1 ? "gasto" : "gastos"} en el rango</span>
+            <span>{filters.month ? monthLabel(filters.month) : filters.from && filters.to ? `${dateLabel(filters.from)} al ${dateLabel(filters.to)}` : "Todos los días"} · {snapshot.totalCount} {snapshot.totalCount === 1 ? "gasto" : "gastos"} en el rango</span>
           </div>
           <div className={styles.panel}>
             <div className={styles.listHeading}>
-              <h2>Gastos registrados</h2>
+              <div><p>MOVIMIENTOS</p><h2>Lo que anotaste</h2></div>
               <span>{snapshot.totalCount}</span>
             </div>
             {refreshError && <p className={styles.error} role="alert">{refreshError}</p>}
             {listMessage && <p className={styles.success} role="status">{listMessage}</p>}
             {snapshot.expenses.length === 0 ? (
-              <p className={styles.empty}>No hay gastos para este período y categoría.</p>
+              <div className={styles.empty}><span aria-hidden="true">✳</span><p>Por acá todavía no hay gastos. Probá con otro período o anotá uno nuevo.</p></div>
             ) : (
               <ul className={styles.list}>
                 {snapshot.expenses.map((expense) => (
-                  <li key={expense.id} className={styles.item}>
-                    <div>
+                  <li key={expense.id} className={styles.item} data-category={expense.category}>
+                    <span className={styles.itemIcon} aria-hidden="true">{categoryLabel(expense.category).slice(0, 1)}</span>
+                    <div className={styles.itemMain}>
                       <strong>{expense.title || expense.merchant || categoryLabel(expense.category)}</strong>
                       <p>{categoryLabel(expense.category)} · {paymentLabel(expense.paymentMethod)} · {dateLabel(expense.occurredOn)}</p>
                       {expense.title && expense.merchant && <p>Comercio: {expense.merchant}</p>}

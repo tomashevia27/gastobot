@@ -75,6 +75,7 @@ Uso local de un único usuario, en ARS y zona `America/Argentina/Buenos_Aires`. 
 
 - [Producto](docs/product.md)
 - [Arquitectura](docs/architecture.md)
+- [Identidad visual](docs/visual-identity.md)
 - [Metodología](docs/development-methodology.md)
 - [Decisiones](docs/decisions/001-modular-monolith.md)
 - [Inicialización](docs/features/initialize-project.md)

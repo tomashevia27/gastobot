@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "GastoBot",
-  description: "Registro personal de gastos",
+  description: "Tu cuaderno de gastos. Anotá y explorá tus gastos en pesos, sin vueltas.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
