@@ -38,6 +38,8 @@ flowchart TD
 
 El token del bot nunca llega al código del cliente. La web sigue limitada al uso local y no tiene autenticación pública. Para usar Telegram debe estar activo un proceso Node separado. Consultá [ADR 005](decisions/005-telegram-local-polling.md) y la [guía de configuración](telegram-bot-setup.md).
 
+Los comandos locales `telegram` y `telegram:identify` priorizan IPv4 para las conexiones de Node con la API de Telegram. En el entorno de desarrollo, la resolución predeterminada causaba `ETIMEDOUT` en `getUpdates` y `answerCallbackQuery`; la misma conexión priorizando IPv4 respondió correctamente. Esta preferencia se limita a esos procesos.
+
 ### Flujo guiado
 
 El registro guiado agrega una máquina de estados efímera al adaptador de Telegram (`src/modules/telegram/conversation.ts`) para implementar `/registrar_gasto`. El estado del borrador vive en memoria durante un máximo absoluto de diez minutos y no sobrevive al reinicio del proceso; por lo tanto, no usa una tabla de sesiones ni una migración. La [especificación del registro guiado](features/telegram-guided-expense-entry.md) define sus estados, transiciones, botones, correcciones y criterios de aceptación.

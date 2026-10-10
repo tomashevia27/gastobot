@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "next dev",
     "local": "bash scripts/start-local.sh",
-    "telegram": "node --import tsx scripts/telegram-poll.ts",
-    "telegram:identify": "node --import tsx scripts/telegram-identify.ts",
+    "telegram": "node --dns-result-order=ipv4first --import tsx scripts/telegram-poll.ts",
+    "telegram:identify": "node --dns-result-order=ipv4first --import tsx scripts/telegram-identify.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
     "test": "vitest run",
