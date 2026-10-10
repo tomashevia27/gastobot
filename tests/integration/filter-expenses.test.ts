@@ -29,6 +29,7 @@ describe("filtered expense list", () => {
     expect(firstResponse.status).toBe(200);
     const first = await firstResponse.json();
     expect(first).toMatchObject({ page: 1, totalCount: 22, hasMore: true });
+    expect(first.rangeTotalCents).toBe("253");
     expect(first.expenses).toHaveLength(20);
     expect(first.expenses[0].occurredOn).toBe("2031-05-22");
     expect(first.expenses.every((expense: { category: string }) => expense.category === "FOOD")).toBe(true);
@@ -44,5 +45,22 @@ describe("filtered expense list", () => {
     const response = await GET(new Request("http://localhost/api/expenses?month=2031-13&unexpected=1"));
     expect(response.status).toBe(400);
     expect(await response.json()).toHaveProperty("errors");
+  });
+
+  it("uses the same inclusive range and category for the list and total", async () => {
+    const inserted = await Promise.all([
+      ["2032-09-08", "FOOD", 100n], ["2032-09-20", "FOOD", 200n],
+      ["2032-09-20", "HEALTH", 500n], ["2032-09-21", "FOOD", 900n],
+    ].map(async ([date, category, amount]) => prisma.expense.create({ data: {
+      amountCents: BigInt(amount), occurredOn: new Date(`${date}T00:00:00Z`),
+      category: category as "FOOD" | "HEALTH", paymentMethod: "CASH",
+    } })));
+    ids.push(...inserted.map((expense) => expense.id));
+
+    const response = await GET(new Request("http://localhost/api/expenses?from=2032-09-08&to=2032-09-20&category=FOOD"));
+    const result = await response.json();
+    expect(result.totalCount).toBe(2);
+    expect(result.rangeTotalCents).toBe("300");
+    expect(result.expenses.map((expense: { occurredOn: string }) => expense.occurredOn)).toEqual(["2032-09-20", "2032-09-08"]);
   });
 });

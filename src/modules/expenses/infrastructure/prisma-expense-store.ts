@@ -26,6 +26,7 @@ function toDto(expense: Expense): ExpenseDto {
     occurredOn: toCivilDate(expense.occurredOn),
     category: expense.category,
     paymentMethod: expense.paymentMethod,
+    title: expense.title,
     merchant: expense.merchant,
     description: expense.description,
     source: expense.source,
@@ -38,7 +39,7 @@ function toCreateData(input: ValidatedExpenseInput, source: ExpenseSource) {
   return {
     amountCents: BigInt(input.amountCents), currency: "ARS" as const,
     occurredOn: toDatabaseDate(input.occurredOn), category: input.category,
-    paymentMethod: input.paymentMethod, merchant: input.merchant,
+    paymentMethod: input.paymentMethod, title: input.title, merchant: input.merchant,
     description: input.description, source,
   };
 }
@@ -91,7 +92,7 @@ export const prismaExpenseStore: ExpenseStore = {
       data: {
         amountCents: BigInt(input.amountCents), occurredOn: toDatabaseDate(input.occurredOn),
         category: input.category, paymentMethod: input.paymentMethod,
-        merchant: input.merchant, description: input.description,
+        title: input.title, merchant: input.merchant, description: input.description,
       },
     });
     if (result.count === 0) return null;
@@ -105,7 +106,9 @@ export const prismaExpenseStore: ExpenseStore = {
 
   async findPage(query: ExpenseListQuery) {
     let occurredOn;
-    if (query.month) {
+    if (query.from && query.to) {
+      occurredOn = { gte: toDatabaseDate(query.from), lte: toDatabaseDate(query.to) };
+    } else if (query.month) {
       let lastDay = 31;
       while (!isValidCivilDate(`${query.month}-${String(lastDay).padStart(2, "0")}`)) lastDay -= 1;
       occurredOn = {
@@ -126,14 +129,15 @@ export const prismaExpenseStore: ExpenseStore = {
     return { expenses: expenses.map(toDto), totalCount };
   },
 
-  async sumCents(fromInclusive: string, toExclusive: string) {
+  async sumCents(fromInclusive: string, toInclusive: string, category = null) {
     const result = await prisma.expense.aggregate({
       _sum: { amountCents: true },
       where: {
         currency: "ARS",
+        ...(category ? { category } : {}),
         occurredOn: {
           gte: toDatabaseDate(fromInclusive),
-          lt: toDatabaseDate(toExclusive),
+          lte: toDatabaseDate(toInclusive),
         },
       },
     });

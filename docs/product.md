@@ -29,14 +29,14 @@ Primer incremento vertical:
 4. Mostrar el total del mes calendario actual.
 5. Conservarlo después de actualizar la página o reiniciar la aplicación.
 
-La edición, la eliminación y los filtros por mes/categoría con lista paginada están implementados localmente. El resumen sigue mostrando el total del mes actual para todas las categorías, independientemente de los filtros de la lista.
+La edición, la eliminación y los filtros por período/categoría con lista paginada están implementados localmente. La lista y la tarjeta muestran el mismo período y categoría. La web consulta cambios externos mientras está visible.
 Los gráficos y análisis avanzados corresponden a etapas posteriores.
 
 ## v0.2: ingreso por Telegram
 
-La implementación local admite `/gasto` con monto y medio de pago obligatorios, más categoría, fecha, comercio y descripción opcionales. El bot confirma después de persistir. Solo se aceptan mensajes de texto desde el chat privado del usuario configurado. El comando exacto, errores y garantías ante reintentos están en [la especificación implementada](features/telegram-expense-entry.md). La [guía de configuración](telegram-bot-setup.md) explica cómo crear el bot y poner en marcha el proceso local; Tomás confirmó el recorrido con el bot real.
+La implementación local admite `/gasto` con monto y medio de pago obligatorios, más categoría, fecha, título, comercio y descripción opcionales. El bot confirma después de persistir. Solo se aceptan mensajes de texto desde el chat privado del usuario configurado. El comando exacto, errores y garantías ante reintentos están en [la especificación implementada](features/telegram-expense-entry.md). La [guía de configuración](telegram-bot-setup.md) explica cómo crear el bot y poner en marcha el proceso local; Tomás confirmó el recorrido con el bot real.
 
-El [registro guiado](features/telegram-guided-expense-entry.md) está implementado: `/registrar_gasto` inicia una conversación de una pregunta por vez, con botones, campos opcionales, revisión, corrección y confirmación antes de guardar. `/gasto` se conserva como alternativa rápida. Todavía falta la prueba manual con el bot real de este recorrido.
+El [registro guiado](features/telegram-guided-expense-entry.md) está implementado: `/registrar_gasto` inicia una conversación de una pregunta por vez, con botones, campos opcionales, revisión, corrección y confirmación antes de guardar. `/gasto` se conserva como alternativa rápida. Tomás confirmó su funcionamiento con el bot real. Se puede cargar un título separado del comercio; `/gasto` acepta `--titulo` y sigue disponible como alternativa rápida.
 
 ## Reglas iniciales
 
@@ -46,7 +46,7 @@ El [registro guiado](features/telegram-guided-expense-entry.md) está implementa
 - Fecha: día civil válido; por defecto, el día actual en America/Argentina/Buenos_Aires para la web. En Telegram, la fecha implícita corresponde al día local del mensaje.
 - Categoría: conjunto fijo al inicio; por defecto, UNCATEGORIZED.
 - Medio de pago: obligatorio y elegido explícitamente.
-- Comercio y descripción: opcionales.
+- Título, comercio y descripción: opcionales.
 - Origen: MANUAL_WEB para la web y TELEGRAM para el bot; lo asigna el servidor.
 - Sin autenticación ni varios usuarios en estos hitos locales.
 - Sin conversión ni totales combinados entre distintas monedas.
@@ -87,6 +87,7 @@ MERCADO_PAGO es una etiqueta de medio de pago; elegirla no contacta a Mercado Pa
 - Categoría: finalidad o tipo de gasto.
 - Medio de pago: cómo se pagó.
 - Comercio: quién recibió el pago.
+- Título: nombre breve elegido por el usuario para identificar el gasto.
 - Origen del gasto: canal por el que ingresó el registro.
 - Transacción importada: evidencia externa que no constituye automáticamente un segundo gasto.
 - Conciliación: vincular evidencia importada con un gasto existente o confirmar que corresponde a uno nuevo.

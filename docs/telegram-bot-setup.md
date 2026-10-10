@@ -47,12 +47,12 @@ En el chat privado, probá:
 ~~~text
 /ayuda
 /registrar_gasto
-/gasto 8.500,50 efectivo --categoria comida --comercio "Kiosco Norte"
+/gasto 8.500,50 efectivo --categoria comida --titulo "Almuerzo" --comercio "Kiosco Norte"
 ~~~
 
-`/registrar_gasto` acompaña un paso por vez: monto, medio de pago, categoría, fecha, comercio y descripción; después muestra un resumen con **Confirmar**, **Corregir** y **Cancelar**, y solo guarda cuando confirmás. El borrador dura diez minutos y se descarta con `/cancelar`.
+`/registrar_gasto` acompaña un paso por vez: monto, medio de pago, categoría, fecha, título, comercio y descripción; después muestra un resumen con **Confirmar**, **Corregir** y **Cancelar**, y solo guarda cuando confirmás. El título es opcional e independiente del comercio. El borrador dura diez minutos y se descarta con `/cancelar`.
 
-`/gasto` confirma monto, fecha, categoría y medio de pago de una sola vez. Abrí la web y verificá el gasto en la lista; si la fecha corresponde a otro mes, usá el filtro mensual. El total del mes actual solo incluye gastos de ese mes. También podés usar `--fecha AAAA-MM-DD` y `--descripcion "texto con espacios"`. Los valores de categorías y medios aparecen en `/ayuda`.
+`/gasto` confirma monto, fecha, categoría y medio de pago de una sola vez. Abrí la web y verificá el gasto en la lista; la web se actualiza mientras está visible. Si la fecha corresponde a otro período, elegí ese mes o un rango de fechas. También podés usar `--titulo "texto con espacios"`, `--fecha AAAA-MM-DD` y `--descripcion "texto con espacios"`. Los valores de categorías y medios aparecen en `/ayuda`.
 
 Detené el proceso con `Ctrl+C`. Para volver a recibir mensajes, ejecutá otra vez `npm run telegram`. Ejecutá **una sola instancia** por bot.
 

@@ -11,12 +11,12 @@ Se usan comandos deterministas. Quedan fuera el lenguaje natural, archivos, mens
 ## Contrato del comando
 
 ~~~text
-/gasto 8.500,50 efectivo --categoria comida --fecha 2026-10-08 --comercio "Kiosco Norte" --descripcion "Almuerzo"
+/gasto 8.500,50 efectivo --categoria comida --fecha 2026-10-08 --titulo "Almuerzo" --comercio "Kiosco Norte" --descripcion "Comida del mediodía"
 ~~~
 
 `monto` y `medio de pago` son obligatorios. Las opciones son opcionales, pueden ir en cualquier orden y solo una vez cada una. Los valores con espacios deben ir entre comillas dobles; dentro de ellas se pueden escribir `\"` y `\\`. No se interpreta texto libre. Los valores desconocidos, opciones repetidas, comillas sin cerrar y argumentos sobrantes se rechazan sin guardar nada.
 
-El monto usa exactamente las reglas argentinas de la creación web. La categoría omitida es `UNCATEGORIZED`; comercio y descripción omitidos son nulos. La fecha omitida es el día civil de `message.date` en `America/Argentina/Buenos_Aires`, no el día en que el proceso finalmente recibe el mensaje. Una fecha explícita debe ser `AAAA-MM-DD` real.
+El monto usa exactamente las reglas argentinas de la creación web. La categoría omitida es `UNCATEGORIZED`; título, comercio y descripción omitidos son nulos. La fecha omitida es el día civil de `message.date` en `America/Argentina/Buenos_Aires`, no el día en que el proceso finalmente recibe el mensaje. Una fecha explícita debe ser `AAAA-MM-DD` real.
 
 | Campo | Valores aceptados en el comando |
 | --- | --- |

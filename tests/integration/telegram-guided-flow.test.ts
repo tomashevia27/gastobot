@@ -74,6 +74,7 @@ async function driveToReview(steps: ReturnType<typeof harness>) {
   await steps.press("Mercado Pago");
   await steps.press("Comida");
   await steps.press("Hoy");
+  await steps.run(message("Almuerzo"));
   await steps.run(message("Kiosco Norte"));
   await steps.press("Omitir");
   expect(steps.sent[steps.sent.length - 1].text).toContain("Revisá el gasto");
@@ -107,6 +108,7 @@ describe("Guided Telegram expense persistence", () => {
       currency: "ARS",
       category: "FOOD",
       paymentMethod: "MERCADO_PAGO",
+      title: "Almuerzo",
       merchant: "Kiosco Norte",
       description: null,
       source: "TELEGRAM",
@@ -117,6 +119,7 @@ describe("Guided Telegram expense persistence", () => {
     expect(success).toBeDefined();
     expect(success!.text).toContain("Monto: ");
     expect(success!.text).toContain("Medio: Mercado Pago");
+    expect(success!.text).toContain("Título: Almuerzo");
     expect(success!.text).toContain("Comercio: Kiosco Norte");
     expect(success!.text).toContain("Descripción: —");
     expect(success!.keyboard?.flat().map((button) => button.text)).toEqual(["Registrar otro gasto"]);

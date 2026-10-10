@@ -12,7 +12,7 @@ const categories = {
   otros: "OTHER", sin_categoria: "UNCATEGORIZED",
 } as const;
 
-const options = { "--categoria": "category", "--fecha": "occurredOn", "--comercio": "merchant", "--descripcion": "description" } as const;
+const options = { "--categoria": "category", "--fecha": "occurredOn", "--titulo": "title", "--comercio": "merchant", "--descripcion": "description" } as const;
 
 export const TELEGRAM_WELCOME = [
   "Hola, soy GastoBot y registro tus gastos personales en pesos argentinos.",
@@ -23,10 +23,10 @@ export const TELEGRAM_WELCOME = [
 export const TELEGRAM_HELP = [
   "Registro guiado: /registrar_gasto (también acepto /registrar-gasto). Te pregunto un dato por vez, con botones, y muestro un resumen para confirmar, corregir o cancelar.",
   "Ingreso rápido: /gasto MONTO MEDIO [opciones]",
-  "Ejemplo: /gasto 8.500,50 efectivo --categoria comida --fecha 2026-10-08 --comercio \"Kiosco Norte\" --descripcion \"Almuerzo\"",
+  "Ejemplo: /gasto 8.500,50 efectivo --categoria comida --fecha 2026-10-08 --titulo \"Almuerzo\" --comercio \"Kiosco Norte\"",
   "Medios: efectivo, mercado_pago, debito, credito, transferencia, otro.",
   "Categorías: comida, supermercado, transporte, combustible, salidas, educacion, salud, servicios, otros, sin_categoria.",
-  "Opciones de /gasto: --categoria, --fecha, --comercio, --descripcion. La fecha y categoría se pueden omitir.",
+  "Opciones de /gasto: --categoria, --fecha, --titulo, --comercio, --descripcion. Son opcionales.",
   "Otros comandos: /cancelar descarta el registro en curso.",
 ].join("\n");
 
@@ -46,6 +46,7 @@ type ExpenseCommand = {
   occurredOn: string;
   category?: (typeof categories)[keyof typeof categories];
   paymentMethod: (typeof payments)[keyof typeof payments];
+  title?: string;
   merchant?: string;
   description?: string;
 };

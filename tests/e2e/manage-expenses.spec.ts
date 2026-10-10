@@ -105,7 +105,7 @@ test("filters a month and category and navigates to the second page", async ({ p
   }
 
   await page.goto("/");
-  await page.getByLabel("Filtrar por mes").fill("2034-07");
+  await page.getByLabel("Mes", { exact: true }).fill("2034-07");
   await page.getByLabel("Filtrar por categoría").selectOption("FOOD");
   await expect(page.getByText("Página 1")).toBeVisible();
   await expect(page.getByRole("listitem")).toHaveCount(20);
@@ -113,4 +113,22 @@ test("filters a month and category and navigates to the second page", async ({ p
   await expect(page.getByText("Página 2")).toBeVisible();
   await expect(page.getByRole("listitem")).toHaveCount(2);
   await expect(page.getByText(`${prefix} 1`, { exact: true })).toBeVisible();
+});
+
+test("filters the list and total by an inclusive custom range", async ({ page, request }) => {
+  const title = `Rango ${randomUUID()}`;
+  const created = await request.post("/api/expenses", { data: {
+    amount: "12,34", occurredOn: "2035-09-20", paymentMethod: "CASH", title,
+  } });
+  expect(created.status()).toBe(201);
+  createdIds.push((await created.json()).id);
+
+  await page.goto("/");
+  await page.getByLabel("Período").selectOption("custom");
+  await page.getByLabel("Desde").fill("2035-09-08");
+  await page.getByLabel("Hasta").fill("2035-09-20");
+  await page.getByRole("button", { name: "Aplicar fechas" }).click();
+  await expect(page.getByText(title, { exact: true })).toBeVisible();
+  await expect(page.getByText("$ 12,34").first()).toBeVisible();
+  await expect(page.getByText("1 gasto en el rango")).toBeVisible();
 });

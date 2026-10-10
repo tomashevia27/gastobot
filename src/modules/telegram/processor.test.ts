@@ -16,6 +16,7 @@ function expenseDto(overrides: Partial<ExpenseDto> = {}): ExpenseDto {
     occurredOn: "2026-10-08",
     category: "FOOD",
     paymentMethod: "CASH",
+    title: null,
     merchant: null,
     description: null,
     source: "TELEGRAM",
@@ -31,7 +32,7 @@ function fakeStore() {
     insert: async () => expenseDto(),
     insertFromTelegram: async (input, key) => {
       telegramInserts.push({ input, updateId: key.updateId });
-      return { expense: expenseDto({ amountCents: input.amountCents }), created: true };
+      return { expense: expenseDto({ amountCents: input.amountCents, title: input.title }), created: true };
     },
     findTelegramResult: async () => null,
     update: async () => null,
@@ -129,8 +130,9 @@ describe("Telegram update dispatch", () => {
     expect(telegramInserts).toHaveLength(0);
 
     await run(message("/cancelar"));
-    await run(message("/gasto 8.500,50 efectivo --categoria comida"));
+    await run(message('/gasto 8.500,50 efectivo --categoria comida --titulo "Almuerzo"'));
     expect(sendMessage.mock.calls.at(-1)![1]).toContain("Gasto guardado");
+    expect(sendMessage.mock.calls.at(-1)![1]).toContain("Almuerzo");
     expect(sendMessage.mock.calls.at(-1)![1]).toContain("Comida");
     expect(telegramInserts).toHaveLength(1);
   });

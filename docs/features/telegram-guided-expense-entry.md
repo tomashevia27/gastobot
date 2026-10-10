@@ -1,6 +1,6 @@
 # Función — Registro guiado de gastos por Telegram
 
-Estado: implementada en código y con pruebas automatizadas; pendiente la prueba manual con el bot real.
+Estado: implementada y probada con el bot real por Tomás.
 
 ## Objetivo
 
@@ -17,7 +17,7 @@ El flujo guiado complementa a `/gasto`: el comando determinista existente contin
 - Una pregunta por mensaje.
 - Botones de Telegram para elecciones cerradas.
 - Monto y medio de pago obligatorios.
-- Categoría, fecha, comercio y descripción opcionales.
+- Categoría, fecha, título, comercio y descripción opcionales.
 - Revisión y corrección antes de guardar.
 - Cancelación y vencimiento del flujo.
 - Estado temporal en memoria; un reinicio del proceso descarta el borrador.
@@ -29,8 +29,8 @@ Quedan fuera el soporte para varios usuarios, la persistencia de borradores, la 
 1. El usuario envía `/registrar_gasto` o toca **Registrar gasto** en la bienvenida o en una confirmación anterior.
 2. El bot inicia un borrador con una vigencia máxima de diez minutos y pregunta el monto.
 3. Después de cada respuesta válida, el bot guarda el dato en el borrador y pregunta el siguiente campo.
-4. El orden es monto, medio de pago, categoría, fecha, comercio y descripción.
-5. El bot muestra un resumen con los seis campos y los botones **Confirmar**, **Corregir** y **Cancelar**.
+4. El orden es monto, medio de pago, categoría, fecha, título, comercio y descripción.
+5. El bot muestra un resumen con los siete campos y los botones **Confirmar**, **Corregir** y **Cancelar**.
 6. **Confirmar** valida todos los datos nuevamente mediante la operación de aplicación compartida y guarda el gasto con origen `TELEGRAM`.
 7. Solo después de persistir, el bot informa que el gasto fue registrado y ofrece **Registrar otro gasto**.
 
@@ -96,11 +96,15 @@ Se usa un solo botón para hoy y omitir porque ambas acciones tienen el mismo re
 
 La fecha predeterminada queda fijada al comenzar el flujo. Confirmar después de medianoche no cambia el día del gasto.
 
-### 5. Comercio
+### 5. Título
+
+El usuario escribe un título breve o toca **Omitir**. El título es independiente del comercio y admite hasta 120 caracteres. En la web es el encabezado del gasto; si falta, se muestra el comercio o la categoría.
+
+### 6. Comercio
 
 El usuario escribe el nombre del comercio o toca **Omitir**. Se aplican el recorte de espacios y el límite de 120 caracteres existentes. Omitir produce `null`.
 
-### 6. Descripción
+### 7. Descripción
 
 El usuario escribe una descripción o toca **Omitir**. Se aplican el recorte de espacios y el límite de 500 caracteres existentes. Omitir produce `null`.
 
@@ -113,13 +117,14 @@ Antes de guardar, el bot presenta:
 > Medio: Mercado Pago<br>
 > Categoría: Comida<br>
 > Fecha: 08/10/2026<br>
+> Título: Almuerzo<br>
 > Comercio: Kiosco Norte<br>
 > Descripción: Almuerzo
 
 Los valores opcionales ausentes se muestran como `—`. Debajo aparecen **Confirmar**, **Corregir** y **Cancelar**.
 
 - **Confirmar** intenta guardar una sola vez de forma idempotente.
-- **Corregir** muestra botones para elegir cualquiera de los seis campos. El bot vuelve a preguntar únicamente ese campo y luego regresa al resumen. Los campos opcionales pueden eliminarse con **Omitir**.
+- **Corregir** muestra botones para elegir cualquiera de los siete campos. El bot vuelve a preguntar únicamente ese campo y luego regresa al resumen. Los campos opcionales pueden eliminarse con **Omitir**.
 - **Cancelar** descarta el borrador y no guarda nada.
 
 No se ofrece navegación hacia el paso anterior durante la carga inicial.
@@ -133,6 +138,7 @@ Después de persistir correctamente:
 > Medio: Mercado Pago<br>
 > Categoría: Comida<br>
 > Fecha: 08/10/2026<br>
+> Título: Almuerzo<br>
 > Comercio: Kiosco Norte<br>
 > Descripción: Almuerzo
 
@@ -191,7 +197,7 @@ El adaptador de Telegram incorpora una máquina de estados explícita (`src/modu
 - campo que se está corrigiendo, cuando corresponda;
 - identificador de la última actualización atendida, para que un reintento no avance dos pasos.
 
-Los estados son: monto, medio de pago, categoría, fecha, fecha escrita, comercio, descripción, revisión y selección de corrección. La confirmación no necesita un estado propio: el poller procesa las actualizaciones en orden secuencial, así que el borrador se libera recién después de persistir y enviar la respuesta.
+Los estados son: monto, medio de pago, categoría, fecha, fecha escrita, título, comercio, descripción, revisión y selección de corrección. La confirmación no necesita un estado propio: el poller procesa las actualizaciones en orden secuencial, así que el borrador se libera recién después de persistir y enviar la respuesta.
 
 El cliente HTTP de Telegram recibe `callback_query`, envía teclados en línea y responde las pulsaciones; la máquina de estados traduce mensajes y callbacks a transiciones, y solo la transición de confirmación llama a `createTelegramExpense`.
 
@@ -203,11 +209,11 @@ No se agrega una tabla de sesiones: la decisión de comenzar otra vez después d
 
 1. `/registrar_gasto`, su alias textual y los botones de inicio crean un borrador, sin insertar un gasto.
 2. El bot pregunta un campo por vez en el orden acordado y usa botones para medios, categorías y fechas predefinidas.
-3. Monto y medio de pago no pueden omitirse; los otros cuatro campos pueden usar sus valores predeterminados o nulos.
+3. Monto y medio de pago no pueden omitirse; los otros cinco campos pueden usar sus valores predeterminados o nulos.
 4. El monto acepta los formatos argentinos actuales y una fecha escrita válida acepta `DD/MM/AAAA`.
 5. El resumen permite confirmar, elegir y corregir cualquier campo o cancelar antes de guardar.
 6. Solo confirmar guarda un gasto ARS con origen `TELEGRAM` y los datos exactos del resumen.
-7. La respuesta de éxito se envía después de persistir e incluye los seis campos y **Registrar otro gasto**.
+7. La respuesta de éxito se envía después de persistir e incluye los siete campos y **Registrar otro gasto**.
 8. `/cancelar`, un reemplazo confirmado, el vencimiento y un reinicio descartan el borrador sin crear un gasto parcial.
 9. Un segundo inicio no reemplaza silenciosamente un borrador vigente.
 10. Botones viejos o repetidos y actualizaciones reintentadas no avanzan dos pasos ni duplican gastos.
@@ -232,12 +238,12 @@ La implementación se dividirá en incrementos verticales que puedan revisarse y
 3. **Creación segura:** conectar la confirmación con `createTelegramExpense`, mantener la deduplicación ante reintentos y cubrir la persistencia con `gastobot_test`.
 4. **Experiencia y operación:** actualizar bienvenida, ayuda, menú y guía de BotFather; ejecutar regresiones de `/gasto` y la prueba manual con el bot real.
 
-Cada incremento incluirá su documentación relacionada y deberá pasar sus verificaciones antes del commit correspondiente. No se prevé una migración de base de datos para este flujo.
+El flujo guiado original no necesitó una tabla de sesiones. La incorporación posterior del título sí agrega una columna anulable a `expenses`.
 
 ## Decisiones tomadas
 
 - Se mantiene la taxonomía actual de categorías durante este incremento.
-- El flujo pide comercio y descripción por separado.
+- El flujo pide título, comercio y descripción por separado.
 - La moneda no se pregunta: siempre es ARS.
 - La revisión ocurre antes de persistir.
 - La corrección se realiza desde el resumen, campo por campo.

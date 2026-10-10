@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { ExpenseDto, ExpensesSnapshot } from "../application/types";
 import { CATEGORY_OPTIONS, PAYMENT_METHOD_OPTIONS, type Category, type PaymentMethod } from "../domain/constants";
-import { todayInBuenosAires } from "../domain/dates";
+import { shiftCivilDate, todayInBuenosAires } from "../domain/dates";
 import { DEFAULT_LIST_QUERY, EXPENSE_PAGE_SIZE, type ExpenseListQuery } from "../domain/list-query";
 import { formatAmountInput, formatArsCents } from "../domain/money";
 import styles from "./ExpenseDashboard.module.css";
@@ -13,6 +13,7 @@ type FormValues = {
   occurredOn: string;
   category: Category;
   paymentMethod: PaymentMethod | "";
+  title: string;
   merchant: string;
   description: string;
 };
@@ -25,6 +26,7 @@ function emptyForm(): FormValues {
     occurredOn: todayInBuenosAires(),
     category: "UNCATEGORIZED",
     paymentMethod: "",
+    title: "",
     merchant: "",
     description: "",
   };
@@ -52,7 +54,12 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
   const [form, setForm] = useState<FormValues>(emptyForm);
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [filters, setFilters] = useState<ExpenseListQuery>(DEFAULT_LIST_QUERY);
+  const [filters, setFilters] = useState<ExpenseListQuery>({ ...DEFAULT_LIST_QUERY, month: initialSnapshot.month });
+  const [period, setPeriod] = useState("month");
+  const [selectedMonth, setSelectedMonth] = useState(initialSnapshot.month);
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  const [periodError, setPeriodError] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
@@ -72,6 +79,8 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
     const requestNumber = ++requestSequence.current;
     const params = new URLSearchParams();
     if (query.month) params.set("month", query.month);
+    if (query.from) params.set("from", query.from);
+    if (query.to) params.set("to", query.to);
     if (query.category) params.set("category", query.category);
     if (query.page > 1) params.set("page", String(query.page));
     try {
@@ -115,13 +124,36 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
     void refreshExpenses(next);
   }
 
+  function selectPeriod(value: string) {
+    setPeriod(value);
+    setPeriodError("");
+    const today = todayInBuenosAires();
+    if (value === "custom") return;
+    if (value === "month") {
+      changeFilters({ ...filters, month: selectedMonth, from: null, to: null, page: 1 });
+      return;
+    }
+    const end = value === "yesterday" ? shiftCivilDate(today, -1) : today;
+    const start = value === "week" ? shiftCivilDate(today, -6) : value === "year" ? shiftCivilDate(today, -364) : end;
+    changeFilters({ ...filters, month: null, from: start, to: end, page: 1 });
+  }
+
+  function applyCustomRange() {
+    if (!customFrom || !customTo || customFrom > customTo) {
+      setPeriodError("Elegí dos fechas válidas, desde la inicial hasta la final.");
+      return;
+    }
+    setPeriodError("");
+    changeFilters({ ...filters, month: null, from: customFrom, to: customTo, page: 1 });
+  }
+
   function beginEdit(expense: ExpenseDto) {
     setDeletingId(null);
     setEditingId(expense.id);
     setForm({
       amount: formatAmountInput(expense.amountCents), occurredOn: expense.occurredOn,
       category: expense.category, paymentMethod: expense.paymentMethod,
-      merchant: expense.merchant ?? "", description: expense.description ?? "",
+      title: expense.title ?? "", merchant: expense.merchant ?? "", description: expense.description ?? "",
     });
     setErrors({});
     setMessage("");
@@ -197,7 +229,7 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
       <header className={styles.header}>
         <p className={styles.eyebrow}>GastoBot · Registro personal</p>
         <h1>Tus gastos, claros y al día.</h1>
-        <p>Registrá un gasto en pesos y seguí el total del mes actual.</p>
+        <p>Registrá un gasto en pesos y explorá cuánto gastaste en cada período.</p>
       </header>
 
       <div className={styles.grid}>
@@ -244,6 +276,14 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
             </div>
 
             <div className={styles.field}>
+              <label htmlFor="title">Título <span className={styles.optional}>(opcional)</span></label>
+              <input id="title" name="title" type="text" maxLength={120} value={form.title}
+                onChange={(event) => update("title", event.target.value)}
+                aria-invalid={Boolean(errors.title)} aria-describedby={errors.title ? "title-error" : undefined} />
+              {errors.title && <span id="title-error" className={styles.error}>{errors.title}</span>}
+            </div>
+
+            <div className={styles.field}>
               <label htmlFor="merchant">Comercio <span className={styles.optional}>(opcional)</span></label>
               <input id="merchant" name="merchant" type="text" maxLength={121} value={form.merchant}
                 onChange={(event) => update("merchant", event.target.value)}
@@ -268,20 +308,19 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
         </section>
 
         <section className={styles.overview} aria-label="Resumen y gastos">
-          <div className={styles.totalCard}>
-            <p>Total de {monthLabel(snapshot.month)}</p>
-            <strong>{formatArsCents(snapshot.currentMonthTotalCents)}</strong>
-          </div>
-          <div className={styles.panel}>
-            <div className={styles.listHeading}>
-              <h2>Gastos registrados</h2>
-              <span>{snapshot.totalCount}</span>
-            </div>
+          <div className={styles.filterCard}>
+            <h2>Explorá tus gastos</h2>
+            <p>Elegí un período y una categoría para ver el total y los movimientos.</p>
             <div className={styles.filters}>
               <div className={styles.field}>
-                <label htmlFor="filter-month">Filtrar por mes</label>
-                <input id="filter-month" type="month" value={filters.month ?? ""} disabled={pending || deletePending}
-                  onChange={(event) => changeFilters({ ...filters, month: event.target.value || null, page: 1 })} />
+                <label htmlFor="filter-period">Período</label>
+                <select id="filter-period" value={period} onChange={(event) => selectPeriod(event.target.value)}>
+                  <option value="month">Mes</option>
+                  <option value="yesterday">Ayer</option>
+                  <option value="week">Últimos 7 días</option>
+                  <option value="year">Últimos 365 días</option>
+                  <option value="custom">Elegir fechas</option>
+                </select>
               </div>
               <div className={styles.field}>
                 <label htmlFor="filter-category">Filtrar por categoría</label>
@@ -292,17 +331,42 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
                 </select>
               </div>
             </div>
+            {period === "month" && <div className={styles.field}>
+              <label htmlFor="filter-month">Mes</label>
+              <input id="filter-month" type="month" value={selectedMonth} onChange={(event) => {
+                setSelectedMonth(event.target.value);
+                if (event.target.value) changeFilters({ ...filters, month: event.target.value, from: null, to: null, page: 1 });
+              }} />
+            </div>}
+            {period === "custom" && <div className={styles.customRange}>
+              <div className={styles.field}><label htmlFor="filter-from">Desde</label><input id="filter-from" type="date" value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} /></div>
+              <div className={styles.field}><label htmlFor="filter-to">Hasta</label><input id="filter-to" type="date" value={customTo} onChange={(event) => setCustomTo(event.target.value)} /></div>
+              <button type="button" onClick={applyCustomRange}>Aplicar fechas</button>
+            </div>}
+            {periodError && <p className={styles.error} role="alert">{periodError}</p>}
+          </div>
+          <div className={styles.totalCard}>
+            <p>Total del período {filters.month ? `· ${monthLabel(filters.month)}` : filters.from && filters.to ? `· ${dateLabel(filters.from)} al ${dateLabel(filters.to)}` : ""}</p>
+            <strong>{formatArsCents(snapshot.rangeTotalCents)}</strong>
+            <span>{snapshot.totalCount} {snapshot.totalCount === 1 ? "gasto" : "gastos"} en el rango</span>
+          </div>
+          <div className={styles.panel}>
+            <div className={styles.listHeading}>
+              <h2>Gastos registrados</h2>
+              <span>{snapshot.totalCount}</span>
+            </div>
             {refreshError && <p className={styles.error} role="alert">{refreshError}</p>}
             {listMessage && <p className={styles.success} role="status">{listMessage}</p>}
             {snapshot.expenses.length === 0 ? (
-              <p className={styles.empty}>{filters.month || filters.category ? "No hay gastos para estos filtros." : "Todavía no hay gastos registrados."}</p>
+              <p className={styles.empty}>No hay gastos para este período y categoría.</p>
             ) : (
               <ul className={styles.list}>
                 {snapshot.expenses.map((expense) => (
                   <li key={expense.id} className={styles.item}>
                     <div>
-                      <strong>{expense.merchant || categoryLabel(expense.category)}</strong>
+                      <strong>{expense.title || expense.merchant || categoryLabel(expense.category)}</strong>
                       <p>{categoryLabel(expense.category)} · {paymentLabel(expense.paymentMethod)} · {dateLabel(expense.occurredOn)}</p>
+                      {expense.title && expense.merchant && <p>Comercio: {expense.merchant}</p>}
                       {expense.description && <p>{expense.description}</p>}
                     </div>
                     <div className={styles.itemSide}>

@@ -35,3 +35,10 @@ export function currentMonthBounds(now: Date = new Date()) {
     endExclusive: `${String(nextYear).padStart(4, "0")}-${String(nextMonth).padStart(2, "0")}-01`,
   };
 }
+
+export function shiftCivilDate(date: string, days: number): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const value = new Date(0);
+  value.setUTCFullYear(year, month - 1, day + days);
+  return value.toISOString().slice(0, 10);
+}

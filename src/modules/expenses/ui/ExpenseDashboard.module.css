@@ -4,12 +4,15 @@
   padding: 3rem 1.5rem 5rem;
 }
 
-.header { margin-bottom: 2.5rem; }
+.header { margin-bottom: 2rem; padding: 1.5rem 0 0.2rem; }
 .eyebrow { color: #28734a; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; }
 .header h1 { max-width: 700px; font-size: clamp(2.4rem, 5vw, 4rem); line-height: 1.1; margin: 0.75rem 0; }
 .header > p:last-child { color: #51645a; font-size: 1.1rem; }
 .grid { display: grid; grid-template-columns: minmax(0, 430px) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
 .panel { background: #fff; border: 1px solid #d9e3da; border-radius: 20px; padding: 1.7rem; box-shadow: 0 8px 30px #193c2110; }
+.filterCard { background: #eaf2eb; border: 1px solid #cbded0; border-radius: 20px; padding: 1.5rem 1.7rem; }
+.filterCard h2 { font-size: 1.25rem; margin: 0 0 0.3rem; }
+.filterCard > p { color: #4d6253; font-size: 0.92rem; margin: 0 0 1.2rem; }
 .panel h2 { font-size: 1.35rem; margin: 0 0 1.5rem; }
 .field { display: flex; flex-direction: column; gap: 0.42rem; margin-bottom: 1.15rem; }
 .field label { font-weight: 650; }
@@ -22,7 +25,7 @@
   font: inherit;
   padding: 0.7rem 0.8rem;
 }
-.field input:focus, .field select:focus, .field textarea:focus, .panel button:focus-visible {
+.field input:focus, .field select:focus, .field textarea:focus, .panel button:focus-visible, .filterCard button:focus-visible {
   outline: 3px solid #8ac7a0;
   outline-offset: 2px;
 }
@@ -48,13 +51,17 @@
 .panel button.dangerButton { background: #a12d2d; }
 .panel button.dangerButton:hover { background: #842424; }
 .overview { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
-.totalCard { background: #173e2a; color: #fff; border-radius: 20px; padding: 1.7rem; }
+.totalCard { background: linear-gradient(125deg, #153d2b, #246a47); color: #fff; border-radius: 20px; padding: 1.7rem; box-shadow: 0 14px 28px #193c2128; }
 .totalCard p { color: #c5ddcc; margin: 0 0 0.65rem; }
 .totalCard strong { display: block; font-size: clamp(2rem, 5vw, 3rem); overflow-wrap: anywhere; }
+.totalCard span { color: #c5ddcc; font-size: 0.9rem; }
 .listHeading { display: flex; align-items: baseline; justify-content: space-between; }
 .listHeading span { color: #51645a; }
 .filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
 .filters .field { margin-bottom: 0.6rem; }
+.customRange { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.8rem; align-items: end; margin-bottom: 1rem; }
+.customRange .field { margin: 0; }
+.filterCard .customRange button { width: auto; white-space: nowrap; border: 0; border-radius: 9px; background: #176b3c; color: #fff; cursor: pointer; font-weight: 700; padding: 0.72rem 0.9rem; }
 .empty { color: #51645a; margin: 0; }
 .list { list-style: none; margin: 0; padding: 0; }
 .item { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid #e4ebe5; padding: 1.1rem 0; }
@@ -74,11 +81,13 @@
 @media (max-width: 760px) {
   .page { padding: 1.5rem 1rem 3rem; }
   .grid { grid-template-columns: 1fr; }
-  .panel, .totalCard { padding: 1.25rem; }
+  .panel, .totalCard, .filterCard { padding: 1.25rem; }
   .item { flex-direction: column; }
   .itemSide { align-items: flex-start; }
 }
 
 @media (max-width: 420px) {
   .filters { grid-template-columns: 1fr; }
+  .customRange { grid-template-columns: 1fr 1fr; }
+  .customRange button { grid-column: 1 / -1; }
 }

@@ -10,6 +10,7 @@ export type ValidatedExpenseInput = {
   occurredOn: string;
   category: Category;
   paymentMethod: PaymentMethod;
+  title: string | null;
   merchant: string | null;
   description: string | null;
 };
@@ -32,6 +33,7 @@ const inputSchema = z.strictObject({
   }),
   category: z.enum(CATEGORY_CODES, { error: "Elegí una categoría válida." }).default("UNCATEGORIZED"),
   paymentMethod: z.enum(PAYMENT_METHOD_CODES, { error: "Elegí un medio de pago." }),
+  title: z.string().trim().max(120, "El título admite hasta 120 caracteres.").optional(),
   merchant: z.string().trim().max(120, "El comercio admite hasta 120 caracteres.").optional(),
   description: z.string().trim().max(500, "La descripción admite hasta 500 caracteres.").optional(),
 });
@@ -53,6 +55,7 @@ export function validateExpenseInput(input: unknown): ValidatedExpenseInput | { 
     occurredOn: value.occurredOn,
     category: value.category,
     paymentMethod: value.paymentMethod,
+    title: value.title || null,
     merchant: value.merchant || null,
     description: value.description || null,
   };

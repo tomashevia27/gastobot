@@ -47,7 +47,7 @@ async function createQuickGasto(
     if (!expense) return { text: "Este mensaje ya fue procesado y el gasto se eliminó. No se creó otro gasto." };
     const category = CATEGORY_OPTIONS.find((option) => option.code === expense.category)?.label ?? expense.category;
     const payment = PAYMENT_METHOD_OPTIONS.find((option) => option.code === expense.paymentMethod)?.label ?? expense.paymentMethod;
-    const summary = `${formatArsCents(expense.amountCents)} · ${expense.occurredOn} · ${category} · ${payment}`;
+    const summary = `${expense.title ? `${expense.title} · ` : ""}${formatArsCents(expense.amountCents)} · ${expense.occurredOn} · ${category} · ${payment}`;
     return { text: `${created ? "Gasto guardado" : "Este mensaje ya registró un gasto"}: ${summary}` };
   } catch (error) {
     if (!(error instanceof ExpenseValidationError)) throw error;

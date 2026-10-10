@@ -1,6 +1,6 @@
 # GastoBot
 
-Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Ya se pueden crear, editar, eliminar y filtrar gastos manuales en ARS, y registrar gastos por Telegram con el comando rápido `/gasto` o con el registro guiado paso a paso `/registrar_gasto`. La lista tiene páginas de 20 registros y el resumen muestra el total del mes actual.
+Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Ya se pueden crear, editar, eliminar y filtrar gastos manuales en ARS, y registrar gastos por Telegram con el comando rápido `/gasto` o con el registro guiado paso a paso `/registrar_gasto`. Los gastos admiten un título independiente del comercio. La lista tiene páginas de 20 registros y el resumen muestra el total del período y la categoría elegidos.
 
 ## Requisitos y versiones
 
@@ -27,7 +27,7 @@ npm run local
 
 Seguí la [guía para crear y configurar el bot](docs/telegram-bot-setup.md). Una vez completado `TELEGRAM_BOT_TOKEN` y `TELEGRAM_ALLOWED_USER_ID` en `.env`, mantené `npm run local` en una terminal y ejecutá `npm run telegram` en otra. El proceso usa consultas periódicas locales, no expone la web a Internet y solo acepta tu chat privado. Al iniciar publica el menú de comandos con `/registrar_gasto`, `/gasto`, `/cancelar` y `/ayuda`. La [especificación del registro guiado](docs/features/telegram-guided-expense-entry.md) describe la conversación paso a paso y la [especificación del comando rápido](docs/features/telegram-expense-entry.md) detalla `/gasto`; [ADR 005](docs/decisions/005-telegram-local-polling.md) registra las decisiones de entrega e idempotencia.
 
-Las migraciones crean `expenses` y el registro de actualizaciones procesadas de Telegram. Los montos son `BIGINT` con una restricción de rango en PostgreSQL. El formulario envía solo campos editables a `POST /api/expenses` (201); `PUT /api/expenses/{id}` reemplaza esos campos y `DELETE /api/expenses/{id}` elimina el registro tras confirmación en la interfaz. `GET /api/expenses` acepta `month=AAAA-MM`, `category` y `page`; devuelve gastos ordenados, `totalCount`, `hasMore`, `page`, `month` y `currentMonthTotalCents`. Los filtros afectan la lista; el total siempre corresponde al mes actual completo. Los totales viajan como strings de centavos para evitar problemas de serialización de `bigint`.
+Las migraciones crean `expenses`, la columna opcional `title` y el registro de actualizaciones procesadas de Telegram. Los montos son `BIGINT` con una restricción de rango en PostgreSQL. El formulario envía solo campos editables a `POST /api/expenses` (201); `PUT /api/expenses/{id}` reemplaza esos campos y `DELETE /api/expenses/{id}` elimina el registro tras confirmación en la interfaz. `GET /api/expenses` acepta `month=AAAA-MM` o el rango inclusivo `from=AAAA-MM-DD&to=AAAA-MM-DD`, además de `category` y `page`; devuelve gastos ordenados, `totalCount`, `hasMore`, `page` y `rangeTotalCents`. La lista y el total comparten filtros. `currentMonthTotalCents` continúa disponible por compatibilidad. Los totales viajan como strings de centavos para evitar problemas de serialización de `bigint`.
 
 ## Verificaciones
 

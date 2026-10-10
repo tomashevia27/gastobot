@@ -16,6 +16,7 @@ function expenseDto(overrides: Partial<ExpenseDto> = {}): ExpenseDto {
     occurredOn: "2026-10-08",
     category: "FOOD",
     paymentMethod: "CASH",
+    title: "Almuerzo",
     merchant: "Kiosco Norte",
     description: "Almuerzo",
     source: "TELEGRAM",
@@ -68,6 +69,7 @@ async function driveToReview(steps: ReturnType<typeof harness>) {
   const category = await steps.press(payment, "Efectivo");
   const date = await steps.press(category, "Comida");
   await steps.press(date, "Hoy");
+  await steps.message("Almuerzo");
   await steps.message("Kiosco Norte");
   return steps.message("Almuerzo");
 }
@@ -106,7 +108,8 @@ describe("Guided expense draft", () => {
     const date = await steps.press(category, "Comida");
     expect(date.keyboard?.flat().map((button) => button.text)).toEqual(["Hoy", "Ayer", "Otra fecha"]);
 
-    const merchant = await steps.press(date, "Hoy");
+    const title = await steps.press(date, "Hoy");
+    const merchant = await steps.press(title, "Omitir");
     expect(merchant.keyboard?.flat().map((button) => button.text)).toEqual(["Omitir"]);
 
     const description = await steps.message("Kiosco Norte");
@@ -119,6 +122,7 @@ describe("Guided expense draft", () => {
       "Medio: Mercado Pago",
       "Categoría: Comida",
       "Fecha: 08/10/2026",
+      "Título: —",
       "Comercio: Kiosco Norte",
       "Descripción: —",
     ].join("\n"));
@@ -132,6 +136,7 @@ describe("Guided expense draft", () => {
       occurredOn: "2026-10-08",
       category: "FOOD",
       paymentMethod: "MERCADO_PAGO",
+      title: undefined,
       merchant: "Kiosco Norte",
       description: undefined,
     }, expect.any(Number));
@@ -141,6 +146,7 @@ describe("Guided expense draft", () => {
       "Medio: Mercado Pago",
       "Categoría: Comida",
       "Fecha: 08/10/2026",
+      "Título: —",
       "Comercio: Kiosco Norte",
       "Descripción: —",
     ].join("\n"));
@@ -184,7 +190,8 @@ describe("Guided expense draft", () => {
     const payment = await steps.message("1000");
     const category = await steps.press(payment, "Efectivo");
     const date = await steps.press(category, "Omitir (sin categoría)");
-    const merchant = await steps.press(date, "Hoy");
+    const title = await steps.press(date, "Hoy");
+    const merchant = await steps.press(title, "Omitir");
     const description = await steps.press(merchant, "Omitir");
     const review = await steps.press(description, "Omitir");
 
@@ -210,7 +217,8 @@ describe("Guided expense draft", () => {
     const wrongFormat = await steps.message("2026-02-31");
     expect(wrongFormat.text).toContain("no existe");
 
-    const merchant = await steps.message("09/03/2024");
+    const title = await steps.message("09/03/2024");
+    const merchant = await steps.press(title, "Omitir");
     const description = await steps.press(merchant, "Omitir");
     const review = await steps.press(description, "Omitir");
     expect(review.text).toContain("Fecha: 09/03/2024");
@@ -222,7 +230,8 @@ describe("Guided expense draft", () => {
     const payment = await steps.message("1000");
     const category = await steps.press(payment, "Efectivo");
     const date = await steps.press(category, "Comida");
-    const merchant = await steps.press(date, "Ayer");
+    const title = await steps.press(date, "Ayer");
+    const merchant = await steps.press(title, "Omitir");
     const description = await steps.press(merchant, "Omitir");
     const review = await steps.press(description, "Omitir");
     expect(review.text).toContain("Fecha: 07/10/2026");
@@ -237,7 +246,8 @@ describe("Guided expense draft", () => {
 
     time.set("2026-10-09T03:01:00Z");
     const date = await steps.press(category, "Comida");
-    const merchant = await steps.press(date, "Hoy");
+    const title = await steps.press(date, "Hoy");
+    const merchant = await steps.press(title, "Omitir");
     const description = await steps.press(merchant, "Omitir");
     const review = await steps.press(description, "Omitir");
     expect(review.text).toContain("Fecha: 08/10/2026");
@@ -249,7 +259,8 @@ describe("Guided expense draft", () => {
     const payment = await steps.message("1000");
     const category = await steps.press(payment, "Efectivo");
     const date = await steps.press(category, "Comida");
-    const merchant = await steps.press(date, "Hoy");
+    const title = await steps.press(date, "Hoy");
+    const merchant = await steps.press(title, "Omitir");
     const description = await steps.press(merchant, "Omitir");
     const review = await steps.press(description, "Omitir");
     expect(review.text).toContain("Fecha: 08/10/2026");
@@ -262,7 +273,7 @@ describe("Guided expense draft", () => {
     const choices = await steps.press(review, "Corregir");
     expect(choices.text).toBe("¿Qué campo querés corregir?");
     expect(choices.keyboard?.flat().map((button) => button.text)).toEqual([
-      "Monto", "Medio de pago", "Categoría", "Fecha", "Comercio", "Descripción",
+      "Monto", "Medio de pago", "Categoría", "Fecha", "Título", "Comercio", "Descripción",
     ]);
 
     const amount = await steps.press(choices, "Monto");
@@ -539,7 +550,8 @@ describe("Guided expense draft", () => {
     const payment = await steps.message("8500");
     const category = await steps.press(payment, "Efectivo");
     const date = await steps.press(category, "Comida");
-    await steps.press(date, "Hoy");
+    const title = await steps.press(date, "Hoy");
+    await steps.press(title, "Omitir");
 
     const empty = await steps.message("   ");
     expect(empty.text).toContain("Omitir");

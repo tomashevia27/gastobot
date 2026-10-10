@@ -1,4 +1,4 @@
-import { currentMonthBounds } from "../domain/dates";
+import { currentMonthBounds, isValidCivilDate, shiftCivilDate } from "../domain/dates";
 import { validateExpenseInput, type FieldErrors } from "../domain/validation";
 import { DEFAULT_LIST_QUERY, EXPENSE_PAGE_SIZE, type ExpenseListQuery } from "../domain/list-query";
 import type { ExpenseDto, ExpenseStore, ExpensesSnapshot, TelegramUpdateKey } from "./types";
@@ -60,12 +60,19 @@ export async function getExpensesSnapshot(
   query: ExpenseListQuery = DEFAULT_LIST_QUERY,
 ): Promise<ExpensesSnapshot> {
   const bounds = currentMonthBounds(now);
-  const [{ expenses, totalCount }, currentMonthTotalCents] = await Promise.all([
+  const from = query.from ?? (query.month ? `${query.month}-01` : bounds.start);
+  let lastDay = 31;
+  if (query.month) while (!isValidCivilDate(`${query.month}-${String(lastDay).padStart(2, "0")}`)) lastDay -= 1;
+  const to = query.to ?? (query.month
+    ? `${query.month}-${String(lastDay).padStart(2, "0")}`
+    : shiftCivilDate(bounds.endExclusive, -1));
+  const [{ expenses, totalCount }, rangeTotalCents, currentMonthTotalCents] = await Promise.all([
     store.findPage(query),
-    store.sumCents(bounds.start, bounds.endExclusive),
+    store.sumCents(from, to, query.category),
+    store.sumCents(bounds.start, shiftCivilDate(bounds.endExclusive, -1)),
   ]);
   return {
-    expenses, month: bounds.month, currentMonthTotalCents,
+    expenses, month: bounds.month, currentMonthTotalCents, rangeTotalCents,
     page: query.page, totalCount,
     hasMore: query.page * EXPENSE_PAGE_SIZE < totalCount,
   };

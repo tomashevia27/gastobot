@@ -45,6 +45,7 @@ model Expense {
   occurredOn    DateTime        @db.Date @map("occurred_on")
   category      ExpenseCategory @default(UNCATEGORIZED)
   paymentMethod PaymentMethod   @map("payment_method")
+  title         String?         @db.VarChar(120)
   merchant      String?         @db.VarChar(120)
   description   String?         @db.VarChar(500)
   source        ExpenseSource   @default(MANUAL_WEB)

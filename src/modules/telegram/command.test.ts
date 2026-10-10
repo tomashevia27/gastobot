@@ -5,9 +5,9 @@ const sentAt = new Date("2026-10-09T00:30:00Z");
 
 describe("Telegram commands", () => {
   it("parses explicit values and quoted optional text", () => {
-    expect(parseTelegramCommand('/gasto 8.500,50 efectivo --descripcion "Almuerzo con Tomás" --categoria comida --fecha 2026-10-06 --comercio "Kiosco Norte"', sentAt)).toEqual({
+    expect(parseTelegramCommand('/gasto 8.500,50 efectivo --descripcion "Almuerzo con Tomás" --categoria comida --fecha 2026-10-06 --titulo "Almuerzo" --comercio "Kiosco Norte"', sentAt)).toEqual({
       kind: "create",
-      input: { amount: "8.500,50", paymentMethod: "CASH", category: "FOOD", occurredOn: "2026-10-06", merchant: "Kiosco Norte", description: "Almuerzo con Tomás" },
+      input: { amount: "8.500,50", paymentMethod: "CASH", category: "FOOD", occurredOn: "2026-10-06", title: "Almuerzo", merchant: "Kiosco Norte", description: "Almuerzo con Tomás" },
     });
   });
 

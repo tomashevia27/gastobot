@@ -2,11 +2,11 @@
 
 Estado: implementada localmente.
 
-La lista de gastos puede filtrarse por un mes calendario (`AAAA-MM`) y una categoría. Ambos filtros son opcionales y se combinan cuando se eligen. Por defecto se muestran todas las fechas y categorías. Los resultados mantienen el orden existente: fecha de ocurrencia descendente, hora de creación descendente y finalmente id.
+La web abre con el mes actual de Buenos Aires. Se puede elegir cualquier mes calendario (`AAAA-MM`), ayer, los últimos 7 días (hoy y seis días anteriores), los últimos 365 días (hoy y 364 días anteriores) o un rango personalizado con ambas fechas incluidas. La categoría se combina con el período. La lista mantiene el orden por fecha de ocurrencia descendente, hora de creación descendente e id.
 
-`GET /api/expenses` acepta `month`, `category` y `page` desde 1. Los parámetros inválidos, repetidos o desconocidos devuelven 400. El backend devuelve hasta 20 registros por página, el número de registros filtrados, la página actual y si existe otra página. Los controles anterior y siguiente permiten navegar. Una búsqueda sin resultados tiene un mensaje distinto al de una base sin gastos.
+`GET /api/expenses` acepta `month` o bien `from` y `to` en formato `AAAA-MM-DD`, además de `category` y `page` desde 1. Los rangos incompletos, invertidos, inválidos, repetidos o combinados con `month` devuelven 400. La consulta sin período conserva la lista completa para compatibilidad de la API. El backend devuelve hasta 20 registros por página, el número filtrado, `rangeTotalCents` como cadena de centavos, la página actual y si existe otra página.
 
-La tarjeta de resumen conserva el total del mes actual de Buenos Aires para todas las categorías, independientemente de los filtros de la lista. Crear, editar o eliminar un registro vuelve a consultar en PostgreSQL la página seleccionada y el resumen.
+La tarjeta y la lista usan el mismo rango y categoría; el total incluye todos los gastos coincidentes, aun cuando haya varias páginas. `currentMonthTotalCents` conserva su significado previo en el contrato HTTP. Crear, editar o eliminar vuelve a consultar la página y los totales.
 
 Mientras la pestaña está visible, la web vuelve a consultar los gastos cada cinco segundos y al recuperar el foco. Así aparecen los gastos creados desde Telegram sin recargar la página; el formulario en edición y los filtros activos se conservan. La pestaña oculta no genera consultas periódicas.
 

@@ -29,6 +29,7 @@ describe("manual expense through HTTP and PostgreSQL", () => {
       occurredOn: "2026-10-06",
       category: "FOOD",
       paymentMethod: "CASH",
+      title: "  Almuerzo  ",
       merchant: "  Kiosco  ",
       description: "  ",
     }));
@@ -41,6 +42,7 @@ describe("manual expense through HTTP and PostgreSQL", () => {
       occurredOn: "2026-10-06",
       category: "FOOD",
       paymentMethod: "CASH",
+      title: "Almuerzo",
       merchant: "Kiosco",
       description: null,
       source: "MANUAL_WEB",
@@ -49,6 +51,7 @@ describe("manual expense through HTTP and PostgreSQL", () => {
 
     const stored = await prisma.expense.findUniqueOrThrow({ where: { id: dto.id } });
     expect(stored.amountCents).toBe(850050n);
+    expect(stored.title).toBe("Almuerzo");
     expect(stored.occurredOn.toISOString()).toBe("2026-10-06T00:00:00.000Z");
     expect(stored.source).toBe("MANUAL_WEB");
     expect((await GET()).status).toBe(200);

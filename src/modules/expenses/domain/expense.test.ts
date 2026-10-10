@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentMonthBounds, isValidCivilDate, todayInBuenosAires } from "./dates";
+import { currentMonthBounds, isValidCivilDate, shiftCivilDate, todayInBuenosAires } from "./dates";
 import { formatAmountInput, parseAmountCents } from "./money";
 import { validateExpenseInput } from "./validation";
 
@@ -58,6 +58,11 @@ describe("civil dates in Buenos Aires", () => {
       endExclusive: "2027-01-01",
     });
   });
+
+  it("shifts civil dates across leap years and years before 100", () => {
+    expect(shiftCivilDate("2024-03-01", -1)).toBe("2024-02-29");
+    expect(shiftCivilDate("0001-03-01", -1)).toBe("0001-02-28");
+  });
 });
 
 describe("expense input validation", () => {
@@ -68,11 +73,12 @@ describe("expense input validation", () => {
   };
 
   it("normalizes valid editable fields and applies only the category default", () => {
-    expect(validateExpenseInput({ ...valid, merchant: "  Kiosco  ", description: "  " })).toEqual({
+    expect(validateExpenseInput({ ...valid, title: "  Almuerzo  ", merchant: "  Kiosco  ", description: "  " })).toEqual({
       amountCents: 850050,
       occurredOn: "2026-10-06",
       category: "UNCATEGORIZED",
       paymentMethod: "CASH",
+      title: "Almuerzo",
       merchant: "Kiosco",
       description: null,
     });
@@ -106,8 +112,8 @@ describe("expense input validation", () => {
   });
 
   it("checks trimmed optional lengths", () => {
-    expect(validateExpenseInput({ ...valid, merchant: "x".repeat(121), description: "y".repeat(501) })).toMatchObject({
-      errors: { merchant: expect.any(String), description: expect.any(String) },
+    expect(validateExpenseInput({ ...valid, title: "z".repeat(121), merchant: "x".repeat(121), description: "y".repeat(501) })).toMatchObject({
+      errors: { title: expect.any(String), merchant: expect.any(String), description: expect.any(String) },
     });
   });
 });

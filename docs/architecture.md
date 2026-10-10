@@ -2,7 +2,7 @@
 
 ## Estado
 
-El flujo local de gastos manuales permite crear, editar, eliminar y consultar una lista filtrada y paginada. El resumen del mes actual es independiente de los filtros de la lista. La v0.2 agrega un adaptador local de Telegram para crear gastos mediante comandos.
+El flujo local de gastos manuales permite crear, editar, eliminar y consultar una lista filtrada y paginada. La tarjeta de total usa los mismos filtros de fecha y categoría que la lista. La v0.2 agrega un adaptador local de Telegram para crear gastos mediante comandos.
 
 ## Sistema inicial
 
@@ -42,7 +42,7 @@ El cliente HTTP del adaptador de Telegram usa el módulo HTTPS de Node con IPv4 
 
 ### Flujo guiado
 
-El registro guiado agrega una máquina de estados efímera al adaptador de Telegram (`src/modules/telegram/conversation.ts`) para implementar `/registrar_gasto`. El estado del borrador vive en memoria durante un máximo absoluto de diez minutos y no sobrevive al reinicio del proceso; por lo tanto, no usa una tabla de sesiones ni una migración. La [especificación del registro guiado](features/telegram-guided-expense-entry.md) define sus estados, transiciones, botones, correcciones y criterios de aceptación.
+El registro guiado agrega una máquina de estados efímera al adaptador de Telegram (`src/modules/telegram/conversation.ts`) para implementar `/registrar_gasto`. El estado del borrador vive en memoria durante un máximo absoluto de diez minutos y no sobrevive al reinicio del proceso; por lo tanto, no usa una tabla de sesiones. La incorporación posterior del título sí requirió una migración aditiva de `expenses`. La [especificación del registro guiado](features/telegram-guided-expense-entry.md) define sus estados, transiciones, botones, correcciones y criterios de aceptación.
 
 El cliente de Telegram admite actualizaciones `callback_query`, teclados en línea y respuestas a callbacks. Las transiciones reúnen los campos sin persistirlos; confirmar llama a la misma operación de creación validada que usa `/gasto`, y la persistencia final conserva la deduplicación transaccional por actualización de Telegram. El poller procesa las actualizaciones en orden secuencial, responde cada pulsación de botón para que Telegram retire el indicador de espera y solo después de procesar y responder avanza el `offset`. Si el proceso se reinicia después de persistir pero antes de responder, consulta el resultado asociado a `(bot_id, update_id)` y reconstruye la confirmación desde el gasto guardado.
 
@@ -104,7 +104,7 @@ Se introduce un puerto o interfaz cuando aísla un límite significativo de pers
 4. createExpense valida las reglas de negocio y pide a persistencia que inserte el registro.
 5. Prisma lo adapta a PostgreSQL; el gasto se guarda con id, origen y marcas de tiempo asignados por el servidor.
 6. Después de insertar, el backend devuelve un DTO seguro.
-7. La interfaz actualiza o vuelve a consultar la lista mínima y el total del mes actual.
+7. La interfaz vuelve a consultar la lista y el total del período activo; también consulta cada cinco segundos mientras está visible para reflejar los gastos creados desde Telegram.
 8. Una inserción fallida devuelve un error y nunca muestra un gasto guardado.
 
 Para este proyecto de aprendizaje, los endpoints HTTP explícitos hacen visible el límite.
@@ -120,6 +120,7 @@ La primera función no necesita Server Actions ni otro framework de API.
 | occurred_on | DATE de PostgreSQL | Fecha civil, no instante UTC |
 | category | Código de categoría válido | Valor inicial UNCATEGORIZED |
 | payment_method | Código de medio de pago válido | Obligatorio |
+| title | Cadena anulable | Hasta 120 caracteres; independiente del comercio |
 | merchant | Cadena anulable | Hasta 120 caracteres |
 | description | Cadena anulable | Hasta 500 caracteres |
 | source | MANUAL_WEB o TELEGRAM | Asignado por el adaptador de entrada del servidor |

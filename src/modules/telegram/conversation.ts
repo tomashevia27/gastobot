@@ -34,17 +34,18 @@ export type ConversationCallback = { updateId: number; chatId: number; data: str
 
 type DraftStep =
   | "amount" | "payment" | "category" | "date" | "writtenDate"
-  | "merchant" | "description" | "review" | "correct";
+  | "title" | "merchant" | "description" | "review" | "correct";
 
-type FlowField = "amount" | "payment" | "category" | "date" | "merchant" | "description";
+type FlowField = "amount" | "payment" | "category" | "date" | "title" | "merchant" | "description";
 
-const FLOW_ORDER = ["amount", "payment", "category", "date", "merchant", "description", "review"] as const;
+const FLOW_ORDER = ["amount", "payment", "category", "date", "title", "merchant", "description", "review"] as const;
 
 type DraftValues = {
   amount?: string;
   payment?: PaymentMethod;
   category?: Category;
   occurredOn?: string;
+  title?: string | null;
   merchant?: string | null;
   description?: string | null;
 };
@@ -54,6 +55,7 @@ type CompleteValues = {
   payment: PaymentMethod;
   category: Category;
   occurredOn: string;
+  title: string | null;
   merchant: string | null;
   description: string | null;
 };
@@ -78,6 +80,7 @@ const PAYMENT_PROMPT = "Elegí el medio de pago.";
 const CATEGORY_PROMPT = "Elegí la categoría.";
 const DATE_PROMPT = "¿Qué día fue?";
 const WRITTEN_DATE_PROMPT = "Escribí la fecha con formato DD/MM/AAAA. Por ejemplo: 08/10/2026.";
+const TITLE_PROMPT = "¿Qué título le ponemos? Por ejemplo: Almuerzo o Supermercado. Escribilo o tocá Omitir.";
 const MERCHANT_PROMPT = "¿En qué comercio fue? Escribí el nombre o tocá Omitir.";
 const DESCRIPTION_PROMPT = "Escribí una descripción o tocá Omitir.";
 const CORRECT_PROMPT = "¿Qué campo querés corregir?";
@@ -95,6 +98,7 @@ const CORRECT_FIELDS: { value: string; step: FlowField; label: string }[] = [
   { value: "payment", step: "payment", label: "Medio de pago" },
   { value: "category", step: "category", label: "Categoría" },
   { value: "date", step: "date", label: "Fecha" },
+  { value: "title", step: "title", label: "Título" },
   { value: "merchant", step: "merchant", label: "Comercio" },
   { value: "description", step: "description", label: "Descripción" },
 ];
@@ -183,6 +187,7 @@ function summaryText(title: string, values: CompleteValues): string {
     `Medio: ${labelOf(PAYMENT_METHOD_OPTIONS, values.payment)}`,
     `Categoría: ${labelOf(CATEGORY_OPTIONS, values.category)}`,
     `Fecha: ${formatWrittenDate(values.occurredOn)}`,
+    `Título: ${values.title ?? "—"}`,
     `Comercio: ${values.merchant ?? "—"}`,
     `Descripción: ${values.description ?? "—"}`,
   ].join("\n");
@@ -195,6 +200,7 @@ function expenseSummaryText(title: string, expense: ExpenseDto): string {
     `Medio: ${labelOf(PAYMENT_METHOD_OPTIONS, expense.paymentMethod)}`,
     `Categoría: ${labelOf(CATEGORY_OPTIONS, expense.category)}`,
     `Fecha: ${formatWrittenDate(expense.occurredOn)}`,
+    `Título: ${expense.title ?? "—"}`,
     `Comercio: ${expense.merchant ?? "—"}`,
     `Descripción: ${expense.description ?? "—"}`,
   ].join("\n");
@@ -285,6 +291,8 @@ export class TelegramConversation {
         return withNotice(this.answerWrittenDate(draft, input.text, input.updateId), notice);
       case "merchant":
         return withNotice(this.answerText(draft, "merchant", input.text, input.updateId), notice);
+      case "title":
+        return withNotice(this.answerText(draft, "title", input.text, input.updateId), notice);
       case "description":
         return withNotice(this.answerText(draft, "description", input.text, input.updateId), notice);
       default:
@@ -397,9 +405,9 @@ export class TelegramConversation {
     return this.commit(draft, updateId);
   }
 
-  private answerText(draft: Draft, field: "merchant" | "description", text: string, updateId: number): ConversationReply {
-    const limit = field === "merchant" ? 120 : 500;
-    const prompt = field === "merchant" ? MERCHANT_PROMPT : DESCRIPTION_PROMPT;
+  private answerText(draft: Draft, field: "title" | "merchant" | "description", text: string, updateId: number): ConversationReply {
+    const limit = field === "description" ? 500 : 120;
+    const prompt = field === "title" ? TITLE_PROMPT : field === "merchant" ? MERCHANT_PROMPT : DESCRIPTION_PROMPT;
     const value = text.trim();
     if (!value) return { text: `Escribí un texto o tocá Omitir.\n\n${prompt}`, keyboard: omitKeyboard(draft.flowId, draft.step) };
     if (value.length > limit) {
@@ -437,6 +445,7 @@ export class TelegramConversation {
         this.advance(draft, "date");
         return this.commit(draft, input.updateId);
       }
+      case "title":
       case "merchant":
       case "description": {
         if (action !== "omit") return { text: BUTTON_ONLY_PROMPT };
@@ -476,6 +485,7 @@ export class TelegramConversation {
         occurredOn: values.occurredOn,
         category: values.category,
         paymentMethod: values.payment,
+        title: values.title ?? undefined,
         merchant: values.merchant ?? undefined,
         description: values.description ?? undefined,
       }, updateId);
@@ -527,6 +537,7 @@ export class TelegramConversation {
       payment: values.payment,
       category: values.category,
       occurredOn: values.occurredOn,
+      title: values.title ?? null,
       merchant: values.merchant ?? null,
       description: values.description ?? null,
     };
@@ -540,6 +551,7 @@ export class TelegramConversation {
       case "category": return { text: CATEGORY_PROMPT, keyboard: categoryKeyboard(draft.flowId) };
       case "date": return { text: DATE_PROMPT, keyboard: dateKeyboard(draft.flowId) };
       case "writtenDate": return { text: WRITTEN_DATE_PROMPT };
+      case "title": return { text: TITLE_PROMPT, keyboard: omitKeyboard(draft.flowId, "title") };
       case "merchant": return { text: MERCHANT_PROMPT, keyboard: omitKeyboard(draft.flowId, "merchant") };
       case "description": return { text: DESCRIPTION_PROMPT, keyboard: omitKeyboard(draft.flowId, "description") };
       case "correct": return { text: CORRECT_PROMPT, keyboard: correctKeyboard(draft.flowId) };

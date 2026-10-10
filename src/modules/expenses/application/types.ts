@@ -13,6 +13,7 @@ export type ExpenseDto = {
   occurredOn: string;
   category: Category;
   paymentMethod: PaymentMethod;
+  title: string | null;
   merchant: string | null;
   description: string | null;
   source: ExpenseSource;
@@ -24,6 +25,7 @@ export type ExpensesSnapshot = {
   expenses: ExpenseDto[];
   month: string;
   currentMonthTotalCents: string;
+  rangeTotalCents: string;
   page: number;
   totalCount: number;
   hasMore: boolean;
@@ -36,5 +38,5 @@ export interface ExpenseStore {
   update(id: string, input: ValidatedExpenseInput): Promise<ExpenseDto | null>;
   delete(id: string): Promise<boolean>;
   findPage(query: ExpenseListQuery): Promise<{ expenses: ExpenseDto[]; totalCount: number }>;
-  sumCents(fromInclusive: string, toExclusive: string): Promise<string>;
+  sumCents(fromInclusive: string, toInclusive: string, category?: Category | null): Promise<string>;
 }
