@@ -1,6 +1,6 @@
 # GastoBot
 
-Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Ya se pueden crear, editar, eliminar y filtrar gastos manuales en ARS, y registrar gastos por comandos de Telegram. La lista tiene páginas de 20 registros y el resumen muestra el total del mes actual.
+Aplicación local para registrar gastos personales y aprender el recorrido interfaz → HTTP → aplicación → PostgreSQL. Ya se pueden crear, editar, eliminar y filtrar gastos manuales en ARS, y registrar gastos por Telegram con el comando rápido `/gasto` o con el registro guiado paso a paso `/registrar_gasto`. La lista tiene páginas de 20 registros y el resumen muestra el total del mes actual.
 
 ## Requisitos y versiones
 
@@ -25,7 +25,7 @@ npm run local
 
 ## Telegram v0.2
 
-Seguí la [guía para crear y configurar el bot](docs/telegram-bot-setup.md). Una vez completado `TELEGRAM_BOT_TOKEN` y `TELEGRAM_ALLOWED_USER_ID` en `.env`, mantené `npm run local` en una terminal y ejecutá `npm run telegram` en otra. El proceso usa consultas periódicas locales, no expone la web a Internet y solo acepta tu chat privado. `/ayuda` muestra los comandos y valores válidos. La [especificación](docs/features/telegram-expense-entry.md) detalla el comportamiento y [ADR 005](docs/decisions/005-telegram-local-polling.md) registra las decisiones de entrega e idempotencia.
+Seguí la [guía para crear y configurar el bot](docs/telegram-bot-setup.md). Una vez completado `TELEGRAM_BOT_TOKEN` y `TELEGRAM_ALLOWED_USER_ID` en `.env`, mantené `npm run local` en una terminal y ejecutá `npm run telegram` en otra. El proceso usa consultas periódicas locales, no expone la web a Internet y solo acepta tu chat privado. Al iniciar publica el menú de comandos con `/registrar_gasto`, `/gasto`, `/cancelar` y `/ayuda`. La [especificación del registro guiado](docs/features/telegram-guided-expense-entry.md) describe la conversación paso a paso y la [especificación del comando rápido](docs/features/telegram-expense-entry.md) detalla `/gasto`; [ADR 005](docs/decisions/005-telegram-local-polling.md) registra las decisiones de entrega e idempotencia.
 
 Las migraciones crean `expenses` y el registro de actualizaciones procesadas de Telegram. Los montos son `BIGINT` con una restricción de rango en PostgreSQL. El formulario envía solo campos editables a `POST /api/expenses` (201); `PUT /api/expenses/{id}` reemplaza esos campos y `DELETE /api/expenses/{id}` elimina el registro tras confirmación en la interfaz. `GET /api/expenses` acepta `month=AAAA-MM`, `category` y `page`; devuelve gastos ordenados, `totalCount`, `hasMore`, `page`, `month` y `currentMonthTotalCents`. Los filtros afectan la lista; el total siempre corresponde al mes actual completo. Los totales viajan como strings de centavos para evitar problemas de serialización de `bigint`.
 
@@ -65,6 +65,8 @@ Con edición, eliminación y filtros se verificaron 52 pruebas de dominio, 11 de
 
 En v0.2 se verificaron 66 pruebas unitarias, 17 de integración con `gastobot_test`, 6 de navegador, lint, tipos, validación Prisma y compilación. También se comprobó que ambos comandos de Telegram informan la configuración faltante sin exponer credenciales. La prueba automatizada se hizo sin credenciales reales; posteriormente Tomás configuró el bot y confirmó manualmente el recorrido real. El primer intento de compilación dentro del entorno aislado falló en un subproceso de TypeScript; la compilación fuera de ese aislamiento terminó correctamente.
 
+Para el registro guiado se verificaron 130 pruebas unitarias y 20 de integración con `gastobot_test`, incluidos corrección, cancelación, vencimiento, callbacks antiguos y recuperación después de persistir. La prueba manual de este recorrido con el bot real queda pendiente.
+
 ## Alcance y documentación
 
 Uso local de un único usuario, en ARS y zona `America/Argentina/Buenos_Aires`. No hay autenticación ni uso público previsto en esta etapa.
@@ -79,6 +81,6 @@ Uso local de un único usuario, en ARS y zona `America/Argentina/Buenos_Aires`. 
 - [Eliminar gasto](docs/features/delete-expense.md)
 - [Filtrar gastos](docs/features/filter-expenses.md)
 - [Ingreso por Telegram](docs/features/telegram-expense-entry.md)
-- [Registro guiado por Telegram — especificado, pendiente de implementación](docs/features/telegram-guided-expense-entry.md)
+- [Registro guiado por Telegram](docs/features/telegram-guided-expense-entry.md)
 - [Crear y configurar el bot](docs/telegram-bot-setup.md)
 - [Instrucciones para agentes](AGENTS.md)

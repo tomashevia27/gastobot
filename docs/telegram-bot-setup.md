@@ -40,14 +40,19 @@ En otra terminal, desde el mismo proyecto y con Node 24.15.0 activo, ejecutá:
 npm run telegram
 ~~~
 
-Mantené esa terminal abierta. En el chat privado, probá:
+Mantené esa terminal abierta. Al arrancar, el proceso publica el menú de comandos de Telegram con `/registrar_gasto`, `/gasto`, `/cancelar` y `/ayuda`; eso reemplaza cualquier menú anterior cargado con `/setcommands` en BotFather. Si la publicación falla, el proceso sigue funcionando y puedes definir el menú desde BotFather.
+
+En el chat privado, probá:
 
 ~~~text
 /ayuda
+/registrar_gasto
 /gasto 8.500,50 efectivo --categoria comida --comercio "Kiosco Norte"
 ~~~
 
-El bot debería confirmar monto, fecha, categoría y medio de pago. Abrí la web y verificá el gasto en la lista; si la fecha corresponde a otro mes, usá el filtro mensual. El total del mes actual solo incluye gastos de ese mes. También podés usar `--fecha AAAA-MM-DD` y `--descripcion "texto con espacios"`. Los valores de categorías y medios aparecen en `/ayuda`.
+`/registrar_gasto` acompaña un paso por vez: monto, medio de pago, categoría, fecha, comercio y descripción; después muestra un resumen con **Confirmar**, **Corregir** y **Cancelar**, y solo guarda cuando confirmás. El borrador dura diez minutos y se descarta con `/cancelar`.
+
+`/gasto` confirma monto, fecha, categoría y medio de pago de una sola vez. Abrí la web y verificá el gasto en la lista; si la fecha corresponde a otro mes, usá el filtro mensual. El total del mes actual solo incluye gastos de ese mes. También podés usar `--fecha AAAA-MM-DD` y `--descripcion "texto con espacios"`. Los valores de categorías y medios aparecen en `/ayuda`.
 
 Detené el proceso con `Ctrl+C`. Para volver a recibir mensajes, ejecutá otra vez `npm run telegram`. Ejecutá **una sola instancia** por bot.
 
@@ -58,5 +63,6 @@ Detené el proceso con `Ctrl+C`. Para volver a recibir mensajes, ejecutá otra v
 - **Webhook activo:** `getUpdates` no funciona mientras exista un webhook. Si ese bot ya se usaba con webhook, retiralo desde su configuración de Telegram antes de iniciar este proceso, o creá uno nuevo para GastoBot. No se elimina automáticamente ningún webhook.
 - **La computadora estuvo apagada:** Telegram conserva actualizaciones pendientes por un máximo de 24 horas. Las más antiguas pueden perderse; revisá la lista web antes de volver a enviar un gasto.
 - **Confirmación repetida:** puede ocurrir si una respuesta se envió pero no llegó la confirmación de recepción al proceso. La misma actualización no crea un segundo gasto.
+- **Botón viejo sin efecto:** los botones pertenecen a un borrador y a un paso concretos. Si el registro venció o ya se guardó, el bot lo indica y pide empezar de nuevo con `/registrar_gasto`.
 
 La recepción por `getUpdates`, el uso de `offset`, la exclusión mutua con webhooks y el plazo de retención están descritos en la [API oficial de bots](https://core.telegram.org/bots/api#getting-updates).

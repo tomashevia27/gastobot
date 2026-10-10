@@ -36,7 +36,7 @@ Los gráficos y análisis avanzados corresponden a etapas posteriores.
 
 La implementación local admite `/gasto` con monto y medio de pago obligatorios, más categoría, fecha, comercio y descripción opcionales. El bot confirma después de persistir. Solo se aceptan mensajes de texto desde el chat privado del usuario configurado. El comando exacto, errores y garantías ante reintentos están en [la especificación implementada](features/telegram-expense-entry.md). La [guía de configuración](telegram-bot-setup.md) explica cómo crear el bot y poner en marcha el proceso local; Tomás confirmó el recorrido con el bot real.
 
-La siguiente mejora de v0.2 está [especificada y pendiente de implementación](features/telegram-guided-expense-entry.md): `/registrar_gasto` inicia una conversación de una pregunta por vez, con botones, campos opcionales, revisión, corrección y confirmación antes de guardar. `/gasto` se conserva como alternativa rápida.
+El [registro guiado](features/telegram-guided-expense-entry.md) está implementado: `/registrar_gasto` inicia una conversación de una pregunta por vez, con botones, campos opcionales, revisión, corrección y confirmación antes de guardar. `/gasto` se conserva como alternativa rápida. Todavía falta la prueba manual con el bot real de este recorrido.
 
 ## Reglas iniciales
 

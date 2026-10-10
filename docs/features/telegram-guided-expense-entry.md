@@ -1,6 +1,6 @@
 # Función — Registro guiado de gastos por Telegram
 
-Estado: especificada; pendiente de implementación.
+Estado: implementada en código y con pruebas automatizadas; pendiente la prueba manual con el bot real.
 
 ## Objetivo
 
@@ -167,7 +167,7 @@ El menú del bot debe incluir al menos:
 | `/cancelar` | Cancelar el registro en curso |
 | `/ayuda` | Ver ayuda y ejemplos |
 
-La configuración del menú se documentará en la guía del bot cuando se implemente el flujo.
+La configuración del menú ocurre al iniciar el proceso y se documenta en la [guía del bot](../telegram-bot-setup.md).
 
 ## Reglas de interacción y seguridad
 
@@ -179,20 +179,21 @@ La configuración del menú se documentará en la guía del bot cuando se implem
 - El bot responde las pulsaciones de botones para que Telegram deje de mostrar el indicador de espera.
 - Los textos del usuario no se incorporan a registros de diagnóstico completos.
 
-## Estado de conversación y arquitectura prevista
+## Estado de conversación y arquitectura
 
-El adaptador de Telegram incorpora una máquina de estados explícita, separada de las reglas del gasto. El estado mínimo de un borrador contiene:
+El adaptador de Telegram incorpora una máquina de estados explícita (`src/modules/telegram/conversation.ts`), separada de las reglas del gasto. El estado mínimo de un borrador contiene:
 
-- identidad confiable del chat y del usuario autorizados;
+- el chat que creó el borrador;
 - identificador opaco del flujo;
 - instante de inicio y vencimiento;
 - paso actual;
 - valores ya respondidos;
-- campo que se está corrigiendo, cuando corresponda.
+- campo que se está corrigiendo, cuando corresponda;
+- identificador de la última actualización atendida, para que un reintento no avance dos pasos.
 
-Los estados previstos son: monto, medio de pago, categoría, fecha, fecha escrita, comercio, descripción, revisión, selección de corrección y confirmación en curso.
+Los estados son: monto, medio de pago, categoría, fecha, fecha escrita, comercio, descripción, revisión y selección de corrección. La confirmación no necesita un estado propio: el poller procesa las actualizaciones en orden secuencial, así que el borrador se libera recién después de persistir y enviar la respuesta.
 
-El cliente HTTP de Telegram deberá recibir `callback_query`, enviar teclados en línea, responder callbacks y, si se usa para retirar botones vencidos, editar el marcado de mensajes. La máquina de estados traduce mensajes y callbacks a transiciones; solo la transición de confirmación llama a `createTelegramExpense`.
+El cliente HTTP de Telegram recibe `callback_query`, envía teclados en línea y responde las pulsaciones; la máquina de estados traduce mensajes y callbacks a transiciones, y solo la transición de confirmación llama a `createTelegramExpense`.
 
 La creación mantiene la transacción y la clave `(bot_id, update_id)` existentes. La actualización que contiene la confirmación identifica el intento de creación. El borrador se conserva hasta que la persistencia y el envío de la respuesta terminan, para que un reintento del mismo update reutilice la entrada y no duplique el gasto. Los reintentos y reinicios posteriores a una persistencia ambigua deben consultar el registro procesado antes de intentar una nueva creación.
 
@@ -243,5 +244,10 @@ Cada incremento incluirá su documentación relacionada y deberá pasar sus veri
 - El borrador vence a los diez minutos desde su inicio y no sobrevive a reinicios.
 - `/gasto` continúa como alternativa rápida.
 - El alcance permanece limitado a un usuario autorizado.
+- El resumen y la confirmación reutilizan `formatArsCents`, por lo que el símbolo moneda conserva el mismo espacio no separable que la web; el ejemplo `Monto: $8.500,50` de esta especificación es equivalente.
+- Los comandos se comparan sin el sufijo `@nombre_del_bot`, de modo que `/gasto@MiGastoBot` equivale a `/gasto`.
+- Al iniciar con un comando, la fecha por defecto se calcula desde el instante del mensaje de Telegram; al iniciar desde un botón, se usa el reloj del proceso. En ambos casos se convierte a `America/Argentina/Buenos_Aires`.
+- Una falla transitoria al responder un callback impide avanzar el `offset` y se reintenta. Si Telegram rechaza definitivamente un callback vencido con un error 4xx, el bot continúa y envía por mensaje cualquier aviso que el usuario necesite ver.
+- Si el gasto ya se persistió pero el proceso se reinicia antes de confirmar por Telegram, el reintento consulta `telegram_processed_updates` y reconstruye la confirmación sin duplicar el gasto.
 
 Referencia del proveedor: [comandos de bots de Telegram](https://core.telegram.org/bots/features#commands).

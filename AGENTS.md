@@ -3,7 +3,7 @@
 ## Contexto y alcance
 
 GastoBot es un registro de gastos personales y un proyecto de aprendizaje.
-Estado actual: la v0.2 local permite administrar gastos manuales e ingresar gastos por Telegram mediante comandos deterministas.
+Estado actual: la v0.2 local permite administrar gastos manuales e ingresar gastos por Telegram mediante comandos deterministas o mediante el registro guiado paso a paso (`/registrar_gasto`).
 Leé la especificación activa de la función antes de modificar el código.
 
 Documentación:
