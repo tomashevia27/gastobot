@@ -8,4 +8,6 @@ La lista de gastos puede filtrarse por un mes calendario (`AAAA-MM`) y una categ
 
 La tarjeta de resumen conserva el total del mes actual de Buenos Aires para todas las categorías, independientemente de los filtros de la lista. Crear, editar o eliminar un registro vuelve a consultar en PostgreSQL la página seleccionada y el resumen.
 
+Mientras la pestaña está visible, la web vuelve a consultar los gastos cada cinco segundos y al recuperar el foco. Así aparecen los gastos creados desde Telegram sin recargar la página; el formulario en edición y los filtros activos se conservan. La pestaña oculta no genera consultas periódicas.
+
 Verificación: las pruebas unitarias cubren reglas de consulta y límites de calendario; las de integración comprueban filtros combinados, orden, recuento y paginación; una prueba de navegador cambia filtros y navega por los resultados.

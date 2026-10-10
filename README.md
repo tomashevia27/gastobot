@@ -55,6 +55,8 @@ npm run test:e2e
 
 `postgres-test` usa el puerto `127.0.0.1:5433` y almacenamiento temporal. Los comandos de prueba requieren `TEST_DATABASE_URL` y verifican el nombre `gastobot_test`; cada prueba borra solo sus propios registros. El contenedor de pruebas se puede detener con `docker compose --profile test stop postgres-test`. Nunca apuntes estos comandos a la base de desarrollo.
 
+Playwright usa `.next-e2e` para ejecutar su servidor con `gastobot_test`; puede correr mientras la web local sigue abierta en el puerto 3000 sin compartir su compilación ni su base de datos.
+
 La integración continua ejecuta instalación, generación de Prisma, lint, verificación de tipos, pruebas unitarias y de integración, migración, compilación y pruebas de navegador en envíos o solicitudes de cambio a `main`. Que exista el flujo de trabajo no significa que GitHub lo haya ejecutado.
 
 Durante la inicialización del 2026-10-06 se verificaron `npm install`, `npm ci`, lint, tipos, validación del esquema, compilación, PostgreSQL 17.11 disponible, conexión Prisma con `SELECT 1` y visualización de `/` con HTTP 200. La auditoría npm informó **9 alertas altas** en dependencias transitivas de las herramientas ESLint/Prisma; las sugerencias automáticas implican cambiar de versión mayor. No se ejecutó `npm audit fix --force`.

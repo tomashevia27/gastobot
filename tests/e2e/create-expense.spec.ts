@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Client } from "pg";
+import { todayInBuenosAires } from "../../src/modules/expenses/domain/dates";
 import { formatArsCents } from "../../src/modules/expenses/domain/money";
 
 const merchant = `Prueba navegador ${Date.now()}`;
@@ -58,4 +59,17 @@ test("keeps form values and shows no saved expense after a server error", async 
   await expect(page.getByLabel("Comercio")).toHaveValue(merchant);
   await expect(page.getByRole("status")).toHaveCount(0);
   await expect(page.getByText(merchant, { exact: true })).toHaveCount(0);
+});
+
+test("shows an expense created outside the page without reloading or clearing the form", async ({ page, request }) => {
+  await page.goto("/");
+  await page.getByLabel("Monto en ARS").fill("9,99");
+
+  const created = await request.post("/api/expenses", { data: {
+    amount: "7,50", occurredOn: todayInBuenosAires(), paymentMethod: "CASH", merchant,
+  } });
+  expect(created.status()).toBe(201);
+
+  await expect(page.getByText(merchant, { exact: true })).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByLabel("Monto en ARS")).toHaveValue("9,99");
 });

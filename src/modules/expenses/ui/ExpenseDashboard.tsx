@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { ExpenseDto, ExpensesSnapshot } from "../application/types";
 import { CATEGORY_OPTIONS, PAYMENT_METHOD_OPTIONS, type Category, type PaymentMethod } from "../domain/constants";
 import { todayInBuenosAires } from "../domain/dates";
@@ -68,7 +68,7 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
     setMessage("");
   }
 
-  async function refreshExpenses(query: ExpenseListQuery = filters) {
+  const refreshExpenses = useCallback(async function refreshExpenses(query: ExpenseListQuery = filters): Promise<void> {
     const requestNumber = ++requestSequence.current;
     const params = new URLSearchParams();
     if (query.month) params.set("month", query.month);
@@ -92,7 +92,22 @@ export function ExpenseDashboard({ initialSnapshot }: { initialSnapshot: Expense
         setRefreshError("No se pudo actualizar la lista. Recargá la página para intentarlo de nuevo.");
       }
     }
-  }
+  }, [filters]);
+
+  useEffect(() => {
+    function refreshIfVisible() {
+      if (!document.hidden) void refreshExpenses();
+    }
+
+    const interval = window.setInterval(refreshIfVisible, 5_000);
+    window.addEventListener("focus", refreshIfVisible);
+    document.addEventListener("visibilitychange", refreshIfVisible);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshIfVisible);
+      document.removeEventListener("visibilitychange", refreshIfVisible);
+    };
+  }, [refreshExpenses]);
 
   function changeFilters(next: ExpenseListQuery) {
     setFilters(next);
